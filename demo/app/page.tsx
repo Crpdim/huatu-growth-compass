@@ -279,7 +279,9 @@ export default function Home() {
     <main className={`app-shell stage-${stage}`}>
       <header className="topbar">
         <button className="brand" onClick={resetDemo} aria-label="返回首页">
-          <span className="brand-mark">华</span>
+          <span className="brand-mark">
+            <img src="/logo.png" alt="" />
+          </span>
           <span>
             <strong>华图成长罗盘</strong>
             <small>GROWTH COMPASS</small>
