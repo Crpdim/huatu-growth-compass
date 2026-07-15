@@ -14,6 +14,8 @@ MVP 使用单体应用、一个主职业规划 Agent 和若干结构化能力模
 - 映射到能力、兴趣、价值观、经历、约束和执行表现；
 - 记录证据来源、置信度和信息缺口；
 - 等待用户确认、修正或驳回。
+- 将用户确认的初始画像保存为只读快照；
+- 根据成长事件生成新画像版本，并输出版本差异。
 
 ### 路径推演
 
@@ -34,7 +36,7 @@ MVP 使用单体应用、一个主职业规划 Agent 和若干结构化能力模
 - 识别新证据、连续失败、目标变化和外部规则变化；
 - 先判断变化影响画像、路径还是任务；
 - 生成调整前后差异及解释；
-- 识别需要规划师复核的场景。
+- 对低置信度或重大转轨进入待验证状态，不自动替学生确认。
 
 ## 3. 结构化 AI 输出
 
@@ -54,17 +56,37 @@ MVP 使用单体应用、一个主职业规划 Agent 和若干结构化能力模
   "confidence": "medium",
   "information_gaps": ["尚无真实项目或实习体验"],
   "recommended_actions": ["完成一个可部署后端功能"],
-  "requires_human_review": false
+  "decision_status": "ready"
 }
 ```
 
 额外约束：
 
 - `confidence` 只允许 `high`、`medium`、`low`；
+- `decision_status` 只允许 `ready`、`needs_more_evidence`、`user_confirmation_required`；
 - 画像提取必须区分候选信息与正式画像；
 - 路径推荐最多三条，不返回精确成功率；
 - 校准必须返回 `trigger`、`before`、`after` 和 `reasoning_summary`；
 - 模型超时、格式错误或安全校验失败时使用同结构静态 fallback。
+
+冷启动可额外返回用户主动表达的当前担忧及其行动化拆解：
+
+```json
+{
+  "current_concern": {
+    "category": "fear_wrong_choice",
+    "statement": "担心投入很久后才发现选错",
+    "source": "user_selected"
+  },
+  "concern_response": {
+    "acknowledgement": "你担心的是过早押注一条路径带来的试错成本",
+    "uncertainties": ["技术工作真实体验", "考研动机", "公考岗位认知"],
+    "next_action": "本周完成三路径信息对比表"
+  }
+}
+```
+
+系统不得推断焦虑程度、诊断心理状态或生成“焦虑指数”。`current_concern` 必须来自用户主动选择或表达，用户可修改、清除，且不自动写入 `ProfileEvidence`。
 
 ## 4. 核心数据模型
 
@@ -73,7 +95,8 @@ MVP 使用单体应用、一个主职业规划 Agent 和若干结构化能力模
 ```text
 student_id, school, major, grade, academic_level,
 current_goals, location_constraints, economic_constraints,
-family_constraints, updated_at
+family_constraints, baseline_snapshot_id,
+current_snapshot_id, updated_at
 ```
 
 ### ProfileEvidence
@@ -85,6 +108,26 @@ status, confirmed_by_user, created_at
 ```
 
 `source_type` 可取 `questionnaire`、`dialogue`、`resume`、`academic_record`、`project`、`certificate`、`task_result`、`external_feedback`、`user_correction`。
+
+### ProfileSnapshot
+
+```text
+snapshot_id, student_id, version, snapshot_type,
+profile_data, evidence_ids, change_summary,
+created_at, created_by
+```
+
+`snapshot_type` 可取 `baseline` 或 `derived`。初始画像经用户确认后生成 `baseline` 快照；后续更新生成 `derived` 版本，不修改旧快照。`StudentProfile.current_snapshot_id` 指向当前有效版本。
+
+### GrowthEvent
+
+```text
+event_id, student_id, event_type, occurred_at,
+source_type, source_reference, summary,
+evidence_ids, user_confirmed, created_at
+```
+
+MVP 的 `event_type` 只覆盖 `task_completed`、`task_missed`、`artifact_submitted`、`goal_changed`、`user_correction` 和 `external_rule_changed`。后续接入成绩、证书或校内系统前必须另行获得授权。
 
 ### CareerPath
 
@@ -106,19 +149,30 @@ completion_criteria, evidence_type, status
 ```text
 calibration_id, student_id, trigger_type, changed_evidence,
 previous_plan, new_plan, reasoning_summary,
-requires_human_review, user_decision, created_at
+decision_status, user_decision, created_at
 ```
+
+### OnboardingContext
+
+```text
+session_id, student_id, current_concern,
+concern_source, user_confirmed, created_at, cleared_at
+```
+
+该结构只服务当前规划会话，用于在 Demo 中承接学生明确表达的担忧。它不等同于长期画像，不记录心理强度，用户清除后不再参与后续生成。
 
 ## 5. 数据更新流程
 
-1. AI 从输入中提取候选画像信息；
+1. AI 从冷启动输入中提取候选画像信息；
 2. 系统记录证据、来源和置信度；
 3. 用户确认、修正、驳回或删除；
-4. 正式画像影响路径比较和任务生成；
-5. 任务成果形成新的候选证据；
-6. 新证据或事件触发分级校准；
-7. 用户决定是否接受调整，重大场景进入人工复核；
-8. 系统保留校准历史，不覆盖原记录。
+4. 系统生成只读初始画像快照 `v1`；
+5. 正式画像影响路径比较和任务生成；
+6. 任务结果、成果提交或用户修正形成 `GrowthEvent` 和候选证据；
+7. 用户确认新证据后，系统生成当前画像新版本和差异摘要；
+8. 新版本或外部事件触发分级校准；
+9. 用户决定是否接受调整；证据不足时系统继续生成验证任务；
+10. 系统保留全部画像版本和校准历史，不覆盖原记录。
 
 ## 6. 页面与 API
 
@@ -129,8 +183,7 @@ MVP 体验收敛为五个核心场景，路由可保持实现上的拆分：
 /compass           成长罗盘与证据画像
 /paths             三路径推演
 /actions           四周成长实验与成果提交
-/calibration       校准前后对比
-/planner           简化版规划师工作台
+/calibration       校准前后对比与学生确认
 ```
 
 建议 API：
@@ -139,6 +192,8 @@ MVP 体验收敛为五个核心场景，路由可保持实现上的拆分：
 POST   /api/onboarding/submit
 POST   /api/onboarding/follow-up
 GET    /api/compass
+GET    /api/profile/snapshots
+GET    /api/profile/timeline
 PATCH  /api/profile/evidence/:id
 GET    /api/paths
 POST   /api/paths/select
@@ -176,9 +231,9 @@ POST   /api/demo/reset
 学生提交任务
   → AI 提取成果证据
   → 写入飞书多维表格成长档案
-  → 自动化规则识别风险或触发校准
-  → 飞书通知规划师
-  → 人工建议回写学生计划
+  → 自动化规则识别变化并触发校准
+  → 系统生成新计划或补充验证任务
+  → 飞书通知学生确认
 ```
 
 可用能力：
@@ -186,7 +241,7 @@ POST   /api/demo/reset
 - 多维表格：画像、路径、任务、证据与校准记录；
 - 自动化：任务提醒、周复盘、连续失败告警；
 - AI 节点或智能体：摘要、结构化提取、计划和校准解释；
-- 妙搭或轻量页面：规划师工作台。
+- 妙搭或轻量页面：学生成长时间线与计划确认页面。
 
 主流程业务逻辑与飞书接口解耦，飞书暂不可用时本地 Demo 仍可完成。
 
@@ -198,7 +253,10 @@ POST   /api/demo/reset
 - 不在现场上传真实敏感个人信息；
 - 用户可跳过非必要问题并删除上传材料；
 - 一般情绪表达不自动进入画像；
+- 当前担忧只能由用户主动表达并确认，不推断、不评分、不用于制造紧迫感；
+- 持续更新仅由已声明且获授权的成长事件触发，不做后台无边界监控；
+- 画像新版本不得覆盖历史快照，用户可查看版本差异和证据来源；
 - 不提供心理诊断或情感咨询；
-- 重大建议显示依据、时间和是否需要人工复核；
+- 重大建议显示依据、时间和决策状态，并要求用户主动确认；
 - 外部规则变化只调整受影响的路径或任务，不重写全部规划；
 - 所有量化效果均标注为试点拟验证目标。
