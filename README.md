@@ -53,3 +53,13 @@ npm run dev
 ```
 
 当前版本不接真实 AI、后端、登录或实时外部数据，适合用于产品走查和比赛演示。
+
+## GitHub Pages
+
+`main` 分支更新后，GitHub Actions 会自动构建并发布 `demo/`：
+
+- 构建命令：`npm run build:pages`；
+- 静态产物：`demo/out/`；
+- Pages 地址：<https://crpdim.github.io/huatu-growth-compass/>。
+
+工作流会自动配置仓库子路径 `/huatu-growth-compass`，本地开发仍使用根路径，不需要手动切换配置。

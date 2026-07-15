@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
 export const metadata: Metadata = {
   title: "华图成长罗盘｜AI 大学生成长实验系统",
   description:
     "用 3 分钟看见成长起点，用每一次行动校准未来。体验证据画像、多路径推演、成长实验与动态校准。",
   icons: {
-    icon: "/logo.png",
-    shortcut: "/logo.png",
-    apple: "/logo.png",
+    icon: `${basePath}/logo.png`,
+    shortcut: `${basePath}/logo.png`,
+    apple: `${basePath}/logo.png`,
   },
 };
 

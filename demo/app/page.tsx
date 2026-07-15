@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react";
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
 type Stage =
   | "landing"
   | "quiz"
@@ -280,7 +282,7 @@ export default function Home() {
       <header className="topbar">
         <button className="brand" onClick={resetDemo} aria-label="返回首页">
           <span className="brand-mark">
-            <img src="/logo.png" alt="" />
+              <img src={`${basePath}/logo.png`} alt="" />
           </span>
           <span>
             <strong>华图成长罗盘</strong>
