@@ -6,6 +6,7 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 type Stage =
   | "landing"
+  | "purpose"
   | "quiz"
   | "result"
   | "profile"
@@ -16,6 +17,7 @@ type Stage =
 
 type PathId = "public" | "job" | "postgrad";
 type LifeDimension = "service" | "structure" | "boundary" | "reality";
+type PurposeId = "steady" | "independent" | "growth" | "self" | "unclear";
 
 type QuizOption = {
   label: string;
@@ -29,6 +31,14 @@ const journeySteps = [
   { label: "未来体验", short: "提前试走" },
   { label: "证据更新", short: "重新认识" },
   { label: "行动验证", short: "真实体验" },
+];
+
+const lifePurposes: { id: PurposeId; icon: string; title: string; description: string; signal: string; tag: string }[] = [
+  { id: "steady", icon: "稳", title: "找到一种可预期的生活", description: "希望工作、城市和生活节奏更确定，也能照顾家人。", signal: "你当前最想先解决生活稳定性与地域确定性", tag: "稳定不是躺平" },
+  { id: "independent", icon: "立", title: "尽快实现经济独立", description: "想减少家庭压力，拥有不依赖别人做选择的底气。", signal: "你当前把经济独立和自主选择权放在优先位置", tag: "先获得选择权" },
+  { id: "growth", icon: "升", title: "获得更快的成长上升", description: "不想停在原地，希望能力、收入和平台都持续向上。", signal: "你当前更关心成长速度与长期上升空间", tag: "成长要看得见" },
+  { id: "self", icon: "我", title: "做一次真正属于自己的选择", description: "不想因为同学、家人或热门路线而随大流。", signal: "你当前最想确认自己的选择，而不是复制别人的答案", tag: "不把人生外包" },
+  { id: "unclear", icon: "?", title: "我还说不清，只想先走一步", description: "暂时没有答案，但不想继续停在信息搜集和反复纠结里。", signal: "你当前需要的不是立刻定方向，而是一个低成本起点", tag: "先走一步" },
 ];
 
 const questions: { eyebrow: string; title: string; options: QuizOption[] }[] = [
@@ -222,6 +232,7 @@ const planTasks = [
 
 const stageRank: Record<Stage, number> = {
   landing: 0,
+  purpose: 0,
   quiz: 0,
   result: 1,
   profile: 1,
@@ -233,6 +244,7 @@ const stageRank: Record<Stage, number> = {
 
 export default function Home() {
   const [stage, setStage] = useState<Stage>("landing");
+  const [selectedPurpose, setSelectedPurpose] = useState<PurposeId | null>(null);
   const [quizIndex, setQuizIndex] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
@@ -244,23 +256,11 @@ export default function Home() {
   const [selectedLifeAnswer, setSelectedLifeAnswer] = useState<number | null>(null);
   const [reaction, setReaction] = useState("");
   const [completedTasks, setCompletedTasks] = useState<number[]>([]);
+  const [signalReviews, setSignalReviews] = useState<Record<number, "confirmed" | "rejected">>({});
 
   const currentRank = stageRank[stage];
   const quizProgress = ((quizIndex + 1) / questions.length) * 100;
   const lifeProgress = ((lifeIndex + 1) / lifeScenes.length) * 100;
-
-  const pathRanking = useMemo(() => {
-    const totals: Record<PathId, number> = { public: 5, job: 3, postgrad: 2 };
-    answers.forEach((answer, index) => {
-      if (answer < 0) return;
-      const option = questions[index]?.options[answer];
-      if (!option) return;
-      (Object.keys(totals) as PathId[]).forEach((id) => {
-        totals[id] += option.scores[id];
-      });
-    });
-    return (Object.keys(totals) as PathId[]).sort((a, b) => totals[b] - totals[a]);
-  }, [answers]);
 
   const profileSignals = useMemo(
     () => answers
@@ -269,6 +269,12 @@ export default function Home() {
       .slice(0, 4),
     [answers],
   );
+
+  const purpose = lifePurposes.find((item) => item.id === selectedPurpose) ?? lifePurposes[4];
+  const resultSignals = useMemo(() => [
+    { text: purpose.signal, source: "人生课题 · 用户主动选择", confidence: "high" },
+    ...profileSignals.slice(0, 3).map((text, index) => ({ text, source: `情境回答 ${String(index + 1).padStart(2, "0")}`, confidence: index === 0 ? "medium" : "low" })),
+  ], [profileSignals, purpose]);
 
   const lifeStats = useMemo(() => {
     const stats: Record<LifeDimension, number> = { service: 44, structure: 58, boundary: 52, reality: 36 };
@@ -290,6 +296,7 @@ export default function Home() {
 
   function resetDemo() {
     setStage("landing");
+    setSelectedPurpose(null);
     setQuizIndex(0);
     setAnswers([]);
     setSelectedAnswer(null);
@@ -301,6 +308,16 @@ export default function Home() {
     setSelectedLifeAnswer(null);
     setReaction("");
     setCompletedTasks([]);
+    setSignalReviews({});
+  }
+
+  function restartPurpose() {
+    setSelectedPurpose(null);
+    setQuizIndex(0);
+    setAnswers([]);
+    setSelectedAnswer(null);
+    setSignalReviews({});
+    setStage("purpose");
   }
 
   function nextQuestion() {
@@ -353,7 +370,7 @@ export default function Home() {
         </div>
       </header>
 
-      {stage !== "landing" && stage !== "quiz" && (
+      {stage !== "landing" && stage !== "purpose" && stage !== "quiz" && (
         <nav className="journey-nav" aria-label="体验进度">
           {journeySteps.map((item, index) => {
             const rank = index + 1;
@@ -374,8 +391,8 @@ export default function Home() {
             <h1>你<span>迷茫</span>吗？</h1>
             <p className="landing-lead">大家好像都在往前走，而你还在考研、公考和实习之间反复横跳。先别急着决定一生，用 3 分钟看看哪种未来值得你先体验。</p>
             <div className="landing-actions">
-              <button className="primary-button" onClick={() => setStage("quiz")}>测测我的成长状态 <span>→</span></button>
-              <span>8 道人生情境 · 没有标准答案</span>
+              <button className="primary-button" onClick={() => setStage("purpose")}>找到我最想解决的人生课题 <span>→</span></button>
+              <span>1 个课题锚点 + 8 道人生情境</span>
             </div>
             <div className="principle-row">
               <div><b>01</b><span>不替你决定</span></div>
@@ -394,12 +411,41 @@ export default function Home() {
         </section>
       )}
 
+      {stage === "purpose" && (
+        <section className="purpose-page">
+          <div className="purpose-heading">
+            <span className="section-kicker">00 · 人生课题</span>
+            <h2>先不选职业。<br />你现在最想解决哪道生活题？</h2>
+            <p>考公、考研和求职都只是路径。真正影响选择的，是你希望生活先发生什么变化。</p>
+          </div>
+          <div className="purpose-grid" role="radiogroup" aria-label="选择当前最想解决的人生课题">
+            {lifePurposes.map((item) => (
+              <button
+                className={selectedPurpose === item.id ? "is-selected" : ""}
+                onClick={() => setSelectedPurpose(item.id)}
+                role="radio"
+                aria-checked={selectedPurpose === item.id}
+                key={item.id}
+              >
+                <span>{item.icon}</span>
+                <div><strong>{item.title}</strong><small>{item.description}</small></div>
+                <i>{selectedPurpose === item.id ? "✓" : "→"}</i>
+              </button>
+            ))}
+          </div>
+          <div className="purpose-footer">
+            <p><b>这不是职业选择。</b>系统会把它作为本次探索的目的锚点，再结合情境选择和现实资料推演路径。</p>
+            <button className="primary-button" disabled={!selectedPurpose} onClick={() => setStage("quiz")}>带着这个问题继续 <span>→</span></button>
+          </div>
+        </section>
+      )}
+
       {stage === "quiz" && (
         <section className="quiz-page">
           <div className="quiz-aside">
-            <span className="section-kicker">01 · 人生探索</span>
+            <span className="section-kicker">01 · 情境探索</span>
             <h2>别选正确答案，<br />选真实反应。</h2>
-            <p>这些情境只用于发现值得体验的未来，不是心理测评，也不会直接决定你适合什么职业。</p>
+            <p>你正在解决：<b>{purpose.title}</b>。这些情境只用于补充选择依据，不会直接决定你适合什么职业。</p>
             <div className="quiz-count"><strong>{String(quizIndex + 1).padStart(2, "0")}</strong><span>/ {String(questions.length).padStart(2, "0")}</span></div>
           </div>
           <div className="quiz-card">
@@ -428,29 +474,36 @@ export default function Home() {
         <section className="content-page result-page">
           <div className="page-heading centered">
             <span className="section-kicker">探索画像 · v0</span>
-            <h2>稳中探索型</h2>
-            <p>你想要确定性，但不希望因为害怕选错，就把未来交给一个标签。</p>
+            <h2>现实探索型</h2>
+            <p>你想先解决“{purpose.title}”，但不会只凭一个愿望就把未来交给某条路线。</p>
           </div>
           <div className="result-grid">
             <article className="share-card">
               <div className="share-top"><span>YOUR GROWTH SIGNAL</span><b>V0 · EXPLORING</b></div>
-              <div className="type-symbol"><span>STEADY</span><strong>↗</strong></div>
-              <h3>稳中探索型</h3>
-              <p>你会认真考虑稳定、地域和现实代价，同时也希望在真正投入前，先看看那种生活是否适合自己。</p>
-              <div className="share-tags"><span># 稳定不是躺平</span><span># 家乡有引力</span><span># 先体验再押注</span></div>
+              <div className="type-symbol"><span>REALITY</span><strong>↗</strong></div>
+              <h3>现实探索型</h3>
+              <p>你的目的锚点是“{purpose.title}”。你需要的不是一个职业标签，而是看见不同生活的收益、代价与第一步。</p>
+              <div className="share-tags"><span># {purpose.tag}</span><span># 选择要有依据</span><span># 先体验再押注</span></div>
               <footer><b>华图成长罗盘</b><span>这只是起点，不是定论</span></footer>
             </article>
             <article className="state-panel">
-              <div className="panel-title"><div><span>本次选择透露的线索</span><small>每条都能回到你的具体回答</small></div><b>v0</b></div>
+              <div className="panel-title"><div><span>本次选择透露的线索</span><small>确认、驳回或返回重选，不让一次回答把你定型</small></div><b>v0</b></div>
               <div className="signal-list">
-                {(profileSignals.length ? profileSignals : ["当前回答较少，系统会在下一步补充事实信息"]).map((signal, index) => (
-                  <div className="signal-row" key={signal}><span>0{index + 1}</span><p>{signal}</p><b>{index < 2 ? "medium" : "low"}</b></div>
+                {resultSignals.map((signal, index) => (
+                  <div className={`signal-row ${signalReviews[index] === "rejected" ? "is-rejected" : ""}`} key={`${signal.text}-${index}`}>
+                    <span>0{index + 1}</span>
+                    <div><p>{signal.text}</p><small>{signal.source} · {signal.confidence}</small></div>
+                    <div className="signal-review">
+                      <button className={signalReviews[index] === "confirmed" ? "is-active" : ""} onClick={() => setSignalReviews((current) => ({ ...current, [index]: "confirmed" }))}>符合</button>
+                      <button className={signalReviews[index] === "rejected" ? "is-active reject" : ""} onClick={() => setSignalReviews((current) => ({ ...current, [index]: "rejected" }))}>不准确</button>
+                    </div>
+                  </div>
                 ))}
               </div>
               <div className="evidence-note"><b>还不能下结论</b><p>小游戏只能看见你的选择方式。学校、专业、经历和现实约束仍需要由你补充并确认。</p></div>
             </article>
           </div>
-          <div className="result-actions"><button className="primary-button" onClick={() => setStage("profile")}>补充事实，打开三种未来 <span>→</span></button></div>
+          <div className="result-actions"><button className="ghost-button" onClick={restartPurpose}>重新选择人生课题</button><button className="primary-button" onClick={() => setStage("profile")}>补充事实，打开三种未来 <span>→</span></button></div>
           <p className="disclaimer">探索画像只服务本次体验，不自动进入长期成长档案。</p>
         </section>
       )}
@@ -473,6 +526,7 @@ export default function Home() {
             </form>
             <aside className="profile-preview">
               <span className="section-kicker light">准备生成</span><h3>初始画像快照 v1</h3><p>固化的是此刻的事实和选择依据，不是把你定型。</p>
+              <div className="preview-evidence"><span>目的锚点</span><b>{purpose.title}</b><small>来源：用户主动选择，可返回修改</small></div>
               <div className="preview-evidence"><span>已确认</span><b>稳定与地域偏好较高</b><small>来源：情境选择 + 现实约束</small></div>
               <div className="preview-evidence"><span>事实</span><b>计算机专业，有课程项目</b><small>来源：用户填写</small></div>
               <div className="preview-evidence"><span>待验证</span><b>能否接受体制内真实工作内容</b><small>来源：当前仍缺少生活体验</small></div>
@@ -485,26 +539,32 @@ export default function Home() {
       {stage === "futures" && (
         <section className="content-page futures-page">
           <div className="page-heading split-heading">
-            <div><span className="section-kicker">02 · 三种平行人生</span><h2>有一种未来，值得你先进去看看</h2></div>
-            <p>系统根据情境选择与事实资料，给出体验顺序。它不是适合度排名，更不是成功率。</p>
+            <div><span className="section-kicker">02 · 三种平行人生</span><h2>系统建议先验证“体制内人生”</h2></div>
+            <p>目的锚点、情境选择和林小北的现实资料共同形成推荐。它不是适合度排名，更不是成功率。</p>
           </div>
+          <article className="priority-rationale">
+            <span>为什么先看这条路</span>
+            <p><b>你想解决：</b>{purpose.title}</p>
+            <p><b>现实坐标：</b>希望留在家乡或省会，家庭倾向稳定，每周可探索约 6 小时。</p>
+            <p><b>仍然不知道：</b>能否接受具体岗位中的规则、服务、重复沟通与临时任务。</p>
+          </article>
           <div className="future-grid">
-            {pathRanking.map((id, index) => {
+            {(["public", "job", "postgrad"] as PathId[]).map((id, index) => {
               const path = pathData[id];
               const available = id === "public";
               return (
                 <article className={`future-card ${path.tone} ${index === 0 ? "is-recommended" : ""}`} key={id}>
-                  <div className="future-card-top"><span>{path.icon}</span><b>{index === 0 ? "优先体验" : index === 1 ? "值得保留" : "补充信息"}</b></div>
+                  <div className="future-card-top"><span>{path.icon}</span><b>{index === 0 ? "本次优先验证" : "作为对照保留"}</b></div>
                   <h3>{path.name}</h3><p>{path.summary}</p>
                   <div className="future-evidence"><small>为什么出现</small>{path.evidence.map((item) => <span key={item}>✓ {item}</span>)}</div>
                   <div className="future-gap"><small>仍待验证</small><p>{path.gap}</p></div>
-                  {available ? <button className="primary-button full" onClick={() => setStage("simulation")}>看看上岸后的真实生活 <span>→</span></button> : <button className="ghost-button full" disabled>更多人生正在生成中</button>}
+                  {available ? <button className="primary-button full" onClick={() => setStage("simulation")}>先看看“上岸”到底是什么生活 <span>→</span></button> : <button className="ghost-button full" disabled>本次作为对照路径</button>}
                 </article>
               );
             })}
           </div>
           <section className="agent-panel">
-            <div className="agent-heading"><span className="agent-avatar">AI</span><div><small>未来体验 Agent</small><h3>你真正想问“岸上”的什么？</h3></div></div>
+            <div className="agent-heading"><span className="agent-avatar">AI</span><div><small>未来体验 Agent</small><h3>进去之前，先问问“岸上”的真实生活</h3></div></div>
             <div className="prompt-chips">{Object.keys(promptAnswers).map((prompt) => <button className={activePrompt === prompt ? "is-active" : ""} onClick={() => setActivePrompt(prompt)} key={prompt}>{prompt}</button>)}</div>
             <div className="agent-reply"><span>成长罗盘</span><p>{promptAnswers[activePrompt]}</p></div>
           </section>
@@ -551,7 +611,7 @@ export default function Home() {
           </div>
           <article className="recalibration-reason"><div><span>系统解释</span><h3>不是因为你“喜欢稳定”，就判断你适合考公。</h3></div><p>你对地域、规则型任务和公共服务场景表现出一定接受度，同时也注意到了成长速度、临时任务和岗位差异。现在最缺的不是另一份测评，而是一次真实考试与岗位体验。</p></article>
           <div className="reaction-panel"><span>体验完这段生活，你现在更接近哪种感受？</span><div>{["这值得我继续了解", "可以接受，但先看具体岗位", "稳定吸引我，工作内容仍不确定", "和想象不同，保留其他人生"].map((item) => <button className={reaction === item ? "is-active" : ""} onClick={() => setReaction(item)} key={item}>{reaction === item ? "✓ " : ""}{item}</button>)}</div></div>
-          <div className="page-actions"><button className="primary-button" disabled={!reaction} onClick={() => setStage("plan")}>确认体验反馈，生成 7 天验证计划 <span>→</span></button></div>
+          <div className="implementation-question"><div><span>体验之后，你终于可以问</span><h3>“如果我想走到这种生活，下一步该怎么实现？”</h3><p>系统不会直接让你报名，而是先把这个问题变成四项低成本验证。</p></div><button className="primary-button" disabled={!reaction} onClick={() => setStage("plan")}>告诉我下一步怎么走 <span>→</span></button></div>
         </section>
       )}
 
