@@ -12,6 +12,8 @@ test("contains the complete Growth Compass demo journey", async () => {
     "你<span>迷茫</span>吗",
     "先想生活",
     "现实探索型",
+    "AI 成长坐标",
+    "现实导向的",
     "三种平行人生",
     "未来体验 Agent",
     "体制内平行人生",

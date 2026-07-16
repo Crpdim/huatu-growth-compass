@@ -10,6 +10,7 @@ type Stage =
   | "quiz"
   | "result"
   | "profile"
+  | "positioning"
   | "futures"
   | "simulation"
   | "recalibration"
@@ -31,6 +32,15 @@ const journeySteps = [
   { label: "未来体验", short: "提前试走" },
   { label: "证据更新", short: "重新认识" },
   { label: "行动验证", short: "真实体验" },
+];
+
+const growthDimensions = [
+  { label: "院校与学业", value: 58, evidence: "普通本科 · 专业成绩中游", color: "#6757e5" },
+  { label: "经历积累", value: 36, evidence: "1 个课程项目 · 暂无实习", color: "#8a72ed" },
+  { label: "方向聚焦", value: 42, evidence: "三条路径仍在比较", color: "#ff8a55" },
+  { label: "行动准备", value: 54, evidence: "每周可投入约 6 小时", color: "#d9b63e" },
+  { label: "现实认知", value: 68, evidence: "地域与家庭约束清晰", color: "#2d9f7f" },
+  { label: "选择自主", value: 62, evidence: "愿意比较并保留个人判断", color: "#4778df" },
 ];
 
 const lifePurposes: { id: PurposeId; icon: string; title: string; description: string; signal: string; tag: string }[] = [
@@ -236,6 +246,7 @@ const stageRank: Record<Stage, number> = {
   quiz: 0,
   result: 1,
   profile: 1,
+  positioning: 1,
   futures: 2,
   simulation: 3,
   recalibration: 4,
@@ -271,6 +282,11 @@ export default function Home() {
   );
 
   const purpose = lifePurposes.find((item) => item.id === selectedPurpose) ?? lifePurposes[4];
+  const radarPoints = growthDimensions.map((item, index) => {
+    const angle = -Math.PI / 2 + index * (Math.PI * 2 / growthDimensions.length);
+    const radius = item.value * 0.42;
+    return `${50 + Math.cos(angle) * radius}% ${50 + Math.sin(angle) * radius}%`;
+  }).join(", ");
   const resultSignals = useMemo(() => [
     { text: purpose.signal, source: "人生课题 · 用户主动选择", confidence: "high" },
     ...profileSignals.slice(0, 3).map((text, index) => ({ text, source: `情境回答 ${String(index + 1).padStart(2, "0")}`, confidence: index === 0 ? "medium" : "low" })),
@@ -515,7 +531,7 @@ export default function Home() {
             <p>以下使用虚构学生“林小北”的预置资料。你可以修改、跳过简历，或撤回授权。</p>
           </div>
           <div className="profile-layout">
-            <form className="profile-form" onSubmit={(event) => { event.preventDefault(); if (consent) setStage("futures"); }}>
+            <form className="profile-form" onSubmit={(event) => { event.preventDefault(); if (consent) setStage("positioning"); }}>
               <div className="form-row"><label>学校<input defaultValue="某普通本科高校" /></label><label>年级<select defaultValue="大二"><option>大一</option><option>大二</option><option>大三</option><option>大四</option></select></label></div>
               <div className="form-row"><label>专业<input defaultValue="计算机科学与技术" /></label><label>成绩位置<select defaultValue="专业中游"><option>专业前 20%</option><option>专业中游</option><option>专业后 30%</option></select></label></div>
               <label>已有经历<textarea defaultValue="完成过校园二手平台课程项目；暂无实习、竞赛和职业证书。" /></label>
@@ -531,6 +547,54 @@ export default function Home() {
               <div className="preview-evidence"><span>事实</span><b>计算机专业，有课程项目</b><small>来源：用户填写</small></div>
               <div className="preview-evidence"><span>待验证</span><b>能否接受体制内真实工作内容</b><small>来源：当前仍缺少生活体验</small></div>
               <footer>下一步会给出值得体验的方向，并附上推荐依据和待补信息。</footer>
+            </aside>
+          </div>
+        </section>
+      )}
+
+      {stage === "positioning" && (
+        <section className="content-page positioning-page">
+          <div className="page-heading split-heading">
+            <div><span className="section-kicker">01 · AI 成长坐标</span><h2>这是你现在的位置</h2></div>
+            <p>AI 将情境回答、学校专业、已有经历和现实约束放在同一张图里。每项分数都能找到对应依据。</p>
+          </div>
+          <div className="positioning-layout">
+            <article className="coordinate-card">
+              <div className="coordinate-heading"><div><span>成长准备度</span><h3>六维坐标图</h3></div><b>PROFILE v1</b></div>
+              <div className="coordinate-content">
+                <div className="radar-chart" role="img" aria-label="六维成长准备度图：院校与学业58，经历积累36，方向聚焦42，行动准备54，现实认知68，选择自主62">
+                  <div className="radar-ring radar-ring-outer" /><div className="radar-ring radar-ring-middle" /><div className="radar-ring radar-ring-inner" />
+                  {growthDimensions.map((item, index) => <i className={`radar-axis axis-${index}`} key={item.label} />)}
+                  <div className="radar-shape" style={{ clipPath: `polygon(${radarPoints})` }} />
+                  {growthDimensions.map((item, index) => {
+                    const angle = -Math.PI / 2 + index * (Math.PI * 2 / growthDimensions.length);
+                    const radius = item.value * 0.42;
+                    return <em className="radar-dot" style={{ left: `${50 + Math.cos(angle) * radius}%`, top: `${50 + Math.sin(angle) * radius}%`, background: item.color }} key={item.label} />;
+                  })}
+                  {growthDimensions.map((item, index) => <span className={`radar-label radar-label-${index}`} key={item.label}>{item.label}</span>)}
+                  <strong>54</strong><small>综合准备度</small>
+                </div>
+                <div className="dimension-list">
+                  {growthDimensions.map((item) => (
+                    <div className="dimension-row" key={item.label}>
+                      <div><span>{item.label}</span><b>{item.value}</b></div>
+                      <i><em style={{ width: `${item.value}%`, background: item.color }} /></i>
+                      <small>{item.evidence}</small>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <footer>分值反映当前准备度与证据充足度。完成课程、项目和验证任务后，坐标会随新证据更新。</footer>
+            </article>
+            <aside className="position-summary">
+              <span className="section-kicker light">AI 初步定位</span>
+              <div className="position-symbol">↗</div>
+              <h3>现实导向的<br />早期探索者</h3>
+              <p>你已经开始考虑地域、家庭和时间等现实条件，也有基本的学业与项目基础。当前最需要补充的是方向聚焦与真实经历。</p>
+              <div className="position-finding positive"><span>当前优势</span><b>现实约束清楚，愿意主动比较</b><small>依据：人生课题、情境选择、资料填写</small></div>
+              <div className="position-finding"><span>关键缺口</span><b>职业体验少，三条路径都停留在想象</b><small>建议：先进入一条平行人生低成本试走</small></div>
+              <div className="position-thesis"><span>个人定位</span><p>适合从短期体验开始，用真实反馈逐步收窄方向。</p></div>
+              <button className="primary-button full" onClick={() => setStage("futures")}>带着这个定位看三种人生 <span>→</span></button>
             </aside>
           </div>
         </section>
