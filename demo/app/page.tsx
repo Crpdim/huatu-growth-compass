@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState, type PointerEvent } from "react";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
@@ -254,6 +254,7 @@ const stageRank: Record<Stage, number> = {
 };
 
 export default function Home() {
+  const landingVisualRef = useRef<HTMLDivElement>(null);
   const [stage, setStage] = useState<Stage>("landing");
   const [selectedPurpose, setSelectedPurpose] = useState<PurposeId | null>(null);
   const [quizIndex, setQuizIndex] = useState(0);
@@ -374,6 +375,40 @@ export default function Home() {
       : [...current, index]);
   }
 
+  function handleLandingPointerMove(event: PointerEvent<HTMLDivElement>) {
+    if (event.pointerType === "touch") return;
+    const visual = landingVisualRef.current;
+    if (!visual) return;
+    const rect = visual.getBoundingClientRect();
+    const x = Math.max(-1, Math.min(1, ((event.clientX - rect.left) / rect.width - 0.5) * 2));
+    const y = Math.max(-1, Math.min(1, ((event.clientY - rect.top) / rect.height - 0.5) * 2));
+
+    visual.style.setProperty("--pointer-x", `${(x + 1) * 50}%`);
+    visual.style.setProperty("--pointer-y", `${(y + 1) * 50}%`);
+    visual.style.setProperty("--scene-x", `${x * 8}px`);
+    visual.style.setProperty("--scene-y", `${y * 7}px`);
+    visual.style.setProperty("--chat-x", `${x * 24}px`);
+    visual.style.setProperty("--chat-y", `${y * 18}px`);
+    visual.style.setProperty("--offer-x", `${x * -17}px`);
+    visual.style.setProperty("--offer-y", `${y * -13}px`);
+    visual.style.setProperty("--family-x", `${x * 19}px`);
+    visual.style.setProperty("--family-y", `${y * 15}px`);
+    visual.style.setProperty("--sticker-x", `${x * -25}px`);
+    visual.style.setProperty("--sticker-y", `${y * -18}px`);
+    visual.style.setProperty("--tilt-x", `${y * -5}deg`);
+    visual.style.setProperty("--tilt-y", `${x * 6}deg`);
+  }
+
+  function resetLandingPointer() {
+    const visual = landingVisualRef.current;
+    if (!visual) return;
+    ["--scene-x", "--scene-y", "--chat-x", "--chat-y", "--offer-x", "--offer-y", "--family-x", "--family-y", "--sticker-x", "--sticker-y"].forEach((property) => visual.style.setProperty(property, "0px"));
+    visual.style.setProperty("--pointer-x", "50%");
+    visual.style.setProperty("--pointer-y", "50%");
+    visual.style.setProperty("--tilt-x", "0deg");
+    visual.style.setProperty("--tilt-y", "0deg");
+  }
+
   return (
     <main className={`app-shell stage-${stage}`}>
       <header className="topbar">
@@ -416,12 +451,12 @@ export default function Home() {
               <div><b>03</b><span>先体验再规划</span></div>
             </div>
           </div>
-          <div className="landing-visual" aria-label="林小北收到的未来提醒">
+          <div className="landing-visual" ref={landingVisualRef} onPointerMove={handleLandingPointerMove} onPointerLeave={resetLandingPointer} aria-label="林小北收到的未来提醒，移动鼠标可以观察不同方向的消息">
             <div className="orbital orbital-one" /><div className="orbital orbital-two" />
             <div className="compass-core"><span>N</span><strong>?</strong><small>下一步在哪</small></div>
-            <article className="floating-card card-chat"><div className="avatar purple">研</div><div><small>考研群 · 12 条新消息</small><b>目标院校都定了吗？</b></div></article>
-            <article className="floating-card card-offer"><div className="avatar orange">聘</div><div><small>朋友圈</small><b>室友拿到第一份实习 Offer</b></div></article>
-            <article className="floating-card card-family"><div className="avatar green">家</div><div><small>妈妈</small><b>要不要早点准备考公？</b></div></article>
+            <div className="floating-layer card-chat"><article className="floating-card"><div className="avatar purple">研</div><div><small>考研群 · 12 条新消息</small><b>目标院校都定了吗？</b></div></article></div>
+            <div className="floating-layer card-offer"><article className="floating-card"><div className="avatar orange">聘</div><div><small>朋友圈</small><b>室友拿到第一份实习 Offer</b></div></article></div>
+            <div className="floating-layer card-family"><article className="floating-card"><div className="avatar green">家</div><div><small>妈妈</small><b>要不要早点准备考公？</b></div></article></div>
             <div className="status-sticker">三个未来正在靠近…</div>
           </div>
         </section>
@@ -431,8 +466,8 @@ export default function Home() {
         <section className="purpose-page">
           <div className="purpose-heading">
             <span className="section-kicker">00 · 人生课题</span>
-            <h2>先想生活，<br />再看职业。</h2>
-            <p>考公、考研和求职都只是路径。真正影响选择的，是你希望生活先发生什么变化。</p>
+            <h2>未来生活，<br />将会是怎样？</h2>
+            <p>人生很长，允许我们慢一点。你未来希望拥有怎样的人生呢？</p>
           </div>
           <div className="purpose-grid" role="radiogroup" aria-label="选择当前最想解决的人生课题">
             {lifePurposes.map((item) => (
@@ -450,8 +485,8 @@ export default function Home() {
             ))}
           </div>
           <div className="purpose-footer">
-            <p><b>职业方向留到后面。</b>系统先记录你想解决的生活问题，再结合情境选择和现实资料推演路径。</p>
-            <button className="primary-button" disabled={!selectedPurpose} onClick={() => setStage("quiz")}>带着这个问题继续 <span>→</span></button>
+            <p><b>不必着急，也不要有压力！</b> 有我们在 </p>
+            <button className="primary-button" disabled={!selectedPurpose} onClick={() => setStage("quiz")}>先选择一个你想要的生活，我们慢慢来 <span>→</span></button>
           </div>
         </section>
       )}
@@ -460,8 +495,8 @@ export default function Home() {
         <section className="quiz-page">
           <div className="quiz-aside">
             <span className="section-kicker">01 · 情境探索</span>
-            <h2>选你真实的反应，<br />这里没有标准答案。</h2>
-            <p>你正在解决：<b>{purpose.title}</b>。这些情境会补充选择依据，职业方向会在事实信息确认后再推演。</p>
+            <h2>这里没有标准答案。</h2>
+            <p>你正想确定的是：<b>{purpose.title}</b>。这些情境会补充选择依据，职业方向会在事实信息确认后再推演。</p>
             <div className="quiz-count"><strong>{String(quizIndex + 1).padStart(2, "0")}</strong><span>/ {String(questions.length).padStart(2, "0")}</span></div>
           </div>
           <div className="quiz-card">

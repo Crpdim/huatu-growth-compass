@@ -10,7 +10,7 @@ test("contains the complete Growth Compass demo journey", async () => {
 
   for (const content of [
     "你<span>迷茫</span>吗",
-    "先想生活",
+    "未来生活",
     "现实探索型",
     "AI 成长坐标",
     "现实导向的",
@@ -26,6 +26,8 @@ test("contains the complete Growth Compass demo journey", async () => {
   assert.match(page, /公考仍值得探索，但理由更完整/);
   assert.match(page, /如果我想走到这种生活，下一步该怎么实现/);
   assert.match(page, /本次作为对照路径/);
+  assert.match(page, /onPointerMove=\{handleLandingPointerMove\}/);
+  assert.match(page, /floating-layer card-chat/);
   assert.doesNotMatch(page, /规划师|requires_human_review/);
 });
 

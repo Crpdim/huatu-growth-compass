@@ -85,17 +85,22 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .principle-row div { display: flex; gap: 9px; align-items: center; }
 .principle-row b { color: var(--violet); font-size: 10px; }
 .principle-row span { color: #6b6879; font-size: 11px; }
-.landing-visual { height: 580px; position: relative; display: grid; place-items: center; }
-.landing-visual::before { content: ""; position: absolute; width: 460px; height: 460px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #8074ed, #36304f 68%, #242238); box-shadow: inset 0 0 80px rgba(255,255,255,.12), var(--shadow); }
-.orbital { position: absolute; border: 1px dashed rgba(255,255,255,.32); border-radius: 50%; z-index: 2; }
-.orbital-one { width: 380px; height: 380px; }
-.orbital-two { width: 520px; height: 270px; transform: rotate(-20deg); }
-.compass-core { position: relative; z-index: 3; width: 170px; height: 170px; border-radius: 50%; background: rgba(255,255,255,.94); display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 24px 60px rgba(11,9,31,.28); }
+.landing-visual { --pointer-x: 50%; --pointer-y: 50%; --scene-x: 0px; --scene-y: 0px; --chat-x: 0px; --chat-y: 0px; --offer-x: 0px; --offer-y: 0px; --family-x: 0px; --family-y: 0px; --sticker-x: 0px; --sticker-y: 0px; --tilt-x: 0deg; --tilt-y: 0deg; height: 580px; position: relative; display: grid; place-items: center; perspective: 900px; isolation: isolate; }
+.landing-visual::before { content: ""; position: absolute; z-index: 0; width: 460px; height: 460px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #8074ed, #36304f 68%, #242238); box-shadow: inset 0 0 80px rgba(255,255,255,.12), var(--shadow); transform: translate3d(var(--scene-x),var(--scene-y),0); transition: transform .22s cubic-bezier(.2,.8,.2,1); will-change: transform; }
+.landing-visual::after { content: ""; position: absolute; z-index: 1; inset: 22px; pointer-events: none; border-radius: 50%; background: radial-gradient(circle at var(--pointer-x) var(--pointer-y),rgba(255,255,255,.17),transparent 28%); mix-blend-mode: screen; opacity: .8; }
+.orbital { position: absolute; border: 1px dashed rgba(255,255,255,.32); border-radius: 50%; z-index: 2; transition: transform .25s cubic-bezier(.2,.8,.2,1); will-change: transform; }
+.orbital-one { width: 380px; height: 380px; transform: translate3d(calc(0px - var(--scene-x)),calc(0px - var(--scene-y)),0); }
+.orbital-two { width: 520px; height: 270px; transform: translate3d(var(--scene-x),var(--scene-y),0) rotate(-20deg); }
+.compass-core { position: relative; z-index: 3; width: 170px; height: 170px; border-radius: 50%; background: rgba(255,255,255,.94); display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 24px 60px rgba(11,9,31,.28); transform: rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) translateZ(8px); transition: transform .2s cubic-bezier(.2,.8,.2,1), box-shadow .2s ease; transform-style: preserve-3d; will-change: transform; }
+.landing-visual:hover .compass-core { box-shadow: 0 30px 68px rgba(11,9,31,.34); }
 .compass-core::before { content: ""; position: absolute; inset: 12px; border: 1px solid #dedbe9; border-radius: 50%; }
 .compass-core span { color: var(--violet); font-size: 10px; font-weight: 900; letter-spacing: .2em; }
 .compass-core strong { font-size: 66px; line-height: 1; color: var(--navy); }
 .compass-core small { font-size: 10px; color: var(--muted); }
-.floating-card { position: absolute; z-index: 5; background: rgba(255,255,255,.96); box-shadow: 0 18px 50px rgba(17,15,43,.2); border: 1px solid rgba(255,255,255,.7); border-radius: 17px; padding: 13px 16px; display: flex; align-items: center; gap: 11px; min-width: 230px; animation: float 4.5s ease-in-out infinite; }
+.floating-layer { position: absolute; z-index: 5; transition: transform .2s cubic-bezier(.2,.8,.2,1); will-change: transform; }
+.floating-layer:hover { z-index: 8; }
+.floating-card { position: relative; background: rgba(255,255,255,.96); box-shadow: 0 18px 50px rgba(17,15,43,.2); border: 1px solid rgba(255,255,255,.7); border-radius: 17px; padding: 13px 16px; display: flex; align-items: center; gap: 11px; min-width: 230px; animation: float 4.5s ease-in-out infinite; transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease; cursor: default; }
+.floating-layer:hover .floating-card { animation: none; transform: translateY(-8px) scale(1.035); border-color: rgba(103,87,229,.28); box-shadow: 0 27px 65px rgba(17,15,43,.28); }
 .floating-card small, .floating-card b { display: block; }
 .floating-card small { font-size: 9px; color: var(--muted); margin-bottom: 3px; }
 .floating-card b { font-size: 12px; }
@@ -103,11 +108,22 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .avatar.purple { background: var(--violet); }
 .avatar.orange { background: var(--orange); }
 .avatar.green { background: var(--green); }
-.card-chat { top: 52px; left: 5px; }
-.card-offer { right: -10px; top: 190px; animation-delay: -1.3s; }
-.card-family { left: 8px; bottom: 58px; animation-delay: -2.5s; }
-.status-sticker { position: absolute; z-index: 6; bottom: 76px; right: 22px; background: var(--lime); color: #2b3221; padding: 10px 15px; font-weight: 800; font-size: 11px; transform: rotate(-3deg); box-shadow: 6px 7px 0 rgba(23,22,41,.45); }
+.card-chat { top: 52px; left: 5px; transform: translate3d(var(--chat-x),var(--chat-y),30px); }
+.card-offer { right: -10px; top: 190px; transform: translate3d(var(--offer-x),var(--offer-y),45px); }
+.card-family { left: 8px; bottom: 58px; transform: translate3d(var(--family-x),var(--family-y),36px); }
+.card-offer .floating-card { animation-delay: -1.3s; }
+.card-family .floating-card { animation-delay: -2.5s; }
+.status-sticker { position: absolute; z-index: 6; bottom: 76px; right: 22px; background: var(--lime); color: #2b3221; padding: 10px 15px; font-weight: 800; font-size: 11px; transform: translate3d(var(--sticker-x),var(--sticker-y),50px) rotate(-3deg); transition: transform .2s cubic-bezier(.2,.8,.2,1), box-shadow .2s ease; box-shadow: 6px 7px 0 rgba(23,22,41,.45); will-change: transform; }
+.status-sticker:hover { transform: translate3d(var(--sticker-x),calc(var(--sticker-y) - 5px),50px) rotate(-1deg) scale(1.03); box-shadow: 8px 10px 0 rgba(23,22,41,.38); }
 @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-visual::after { display: none; }
+  .landing-visual::before, .orbital, .compass-core, .floating-layer, .floating-card, .status-sticker { transition: none; animation: none; }
+  .landing-visual::before, .orbital-one, .compass-core, .floating-layer { transform: none; }
+  .orbital-two { transform: rotate(-20deg); }
+  .status-sticker, .status-sticker:hover { transform: rotate(-3deg); }
+}
 
 /* Life purpose */
 .purpose-page { min-height: calc(100vh - 76px); max-width: 1180px; margin: 0 auto; padding: 54px 30px 84px; }
