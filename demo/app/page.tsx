@@ -9,193 +9,215 @@ type Stage =
   | "quiz"
   | "result"
   | "profile"
-  | "paths"
-  | "plan"
-  | "calibration";
+  | "futures"
+  | "simulation"
+  | "recalibration"
+  | "plan";
 
-type PathId = "job" | "postgrad" | "public";
+type PathId = "public" | "job" | "postgrad";
+type LifeDimension = "service" | "structure" | "boundary" | "reality";
 
-const stages: { id: Stage; label: string; short: string }[] = [
-  { id: "landing", label: "认识担忧", short: "定位" },
-  { id: "result", label: "初始状态", short: "画像" },
-  { id: "paths", label: "三路推演", short: "定向" },
-  { id: "plan", label: "成长实验", short: "导航" },
-  { id: "calibration", label: "动态更新", short: "校准" },
+type QuizOption = {
+  label: string;
+  signal: string;
+  scores: Record<PathId, number>;
+};
+
+const journeySteps = [
+  { label: "初始画像", short: "认识自己" },
+  { label: "平行人生", short: "发现可能" },
+  { label: "未来体验", short: "提前试走" },
+  { label: "证据更新", short: "重新认识" },
+  { label: "行动验证", short: "真实体验" },
 ];
 
-const questions = [
+const questions: { eyebrow: string; title: string; options: QuizOption[] }[] = [
   {
-    eyebrow: "面对选择",
-    title: "室友已经开始准备考研、公考和实习，而你还没想好。你更接近：",
+    eyebrow: "毕业路口",
+    title: "室友开始准备考研、公考和实习，而你还没想好。你会先做什么？",
     options: [
-      "先跟着准备，至少别落后",
-      "疯狂搜资料，但迟迟没按下开始键",
-      "先做一次短期体验，再决定加不加码",
-      "再观察一下，也许答案会自己出现",
+      { label: "先了解家乡和省会有哪些稳定岗位", signal: "地域与稳定是你会优先确认的现实条件", scores: { public: 3, job: 0, postgrad: 1 } },
+      { label: "先投几份实习，用真实工作找方向", signal: "你倾向用企业实践快速验证选择", scores: { public: 0, job: 3, postgrad: 0 } },
+      { label: "先看看继续读研能打开哪些可能", signal: "你愿意通过继续学习延长能力积累", scores: { public: 0, job: 0, postgrad: 3 } },
+      { label: "把三条路都收藏起来，晚点再决定", signal: "你希望保留可能，但容易停在信息搜集阶段", scores: { public: 1, job: 1, postgrad: 1 } },
+    ],
+  },
+  {
+    eyebrow: "理想生活",
+    title: "如果工作五年后回头看，你最希望自己获得什么？",
+    options: [
+      { label: "生活可预期，也能照顾家人", signal: "你重视确定性、地域与生活边界", scores: { public: 3, job: 0, postgrad: 1 } },
+      { label: "收入和能力都快速增长", signal: "你更看重成长速度和成果回报", scores: { public: 0, job: 3, postgrad: 0 } },
+      { label: "在专业领域形成真正的积累", signal: "你在意长期专业深度", scores: { public: 0, job: 1, postgrad: 3 } },
+      { label: "先有选择权，不被任何路线困住", signal: "你看重自主性，需要保留转轨空间", scores: { public: 1, job: 2, postgrad: 1 } },
+    ],
+  },
+  {
+    eyebrow: "任务偏好",
+    title: "周末可以体验一种陌生任务，你更愿意先试哪一种？",
+    options: [
+      { label: "从一堆材料里找规律，给出有依据的结论", signal: "你愿意尝试规则明确的信息分析任务", scores: { public: 3, job: 1, postgrad: 1 } },
+      { label: "做一个能运行的小产品或功能", signal: "你偏好做出可见、可运行的成果", scores: { public: 0, job: 3, postgrad: 1 } },
+      { label: "深入研究一个问题并写成报告", signal: "你愿意为一个问题进行持续研究", scores: { public: 1, job: 0, postgrad: 3 } },
+      { label: "先听三个过来人讲真实经历", signal: "你习惯借助案例降低试错成本", scores: { public: 2, job: 1, postgrad: 1 } },
     ],
   },
   {
     eyebrow: "计划中断",
-    title: "回想你最近一次计划中断，最后更接近哪种情况？",
+    title: "学习计划第三天就被课程和社团打断，你通常会：",
     options: [
-      "当晚重排了一版更完整的计划",
-      "先砍掉一半任务，保住最低进度",
-      "换个更容易完成的目标找手感",
-      "暂时搁置，等课业稳定后再重开",
+      { label: "缩小任务，先保住每天最低进度", signal: "你有一定的节奏调整意识", scores: { public: 2, job: 1, postgrad: 2 } },
+      { label: "换成一个更有成果感的小项目", signal: "可见成果更容易驱动你继续行动", scores: { public: 0, job: 3, postgrad: 0 } },
+      { label: "重新整理资料，做一份更完整的计划", signal: "你重视系统准备，但要警惕计划过载", scores: { public: 2, job: 0, postgrad: 2 } },
+      { label: "先停下来，等状态好一点再开始", signal: "当前行动启动仍需要更小的第一步", scores: { public: 0, job: 0, postgrad: 0 } },
     ],
   },
   {
-    eyebrow: "职业价值",
-    title: "三份机会摆在你面前，你会先认真了解哪一个？",
+    eyebrow: "现实取舍",
+    title: "三份机会同时出现，你会优先认真了解哪一份？",
     options: [
-      "稳定、离家近，但成长节奏慢一些",
-      "收入和成长快，但工作强度很高",
-      "自由度高，但路径和未来不太确定",
-      "先看哪个愿意给我 Offer，再谈理想",
-    ],
-  },
-  {
-    eyebrow: "信息过载",
-    title: "收藏夹里躺着 37 篇经验帖，你通常会：",
-    options: [
-      "继续分类，等资料完整再决定",
-      "挑一篇照做，完成后再补信息",
-      "找一个过来人，直接问最关键的问题",
-      "关掉收藏夹，先处理眼前的课程",
-    ],
-  },
-  {
-    eyebrow: "真实体验",
-    title: "如果用一个周末体验陌生方向，你更愿意：",
-    options: [
-      "做一个能跑起来的小项目",
-      "完成一套体验题，看看自己是否适应",
-      "旁听一节课，再写下真实感受",
-      "先看别人完整复盘，降低试错成本",
+      { label: "离家近、稳定，但成长节奏慢一些", signal: "地域和稳定在你的排序中靠前", scores: { public: 3, job: 0, postgrad: 0 } },
+      { label: "收入较高、成长快，但工作强度大", signal: "你愿意为成长速度承担更高强度", scores: { public: 0, job: 3, postgrad: 0 } },
+      { label: "继续学习两三年，再进入更专业的领域", signal: "你能接受较长的学习投入周期", scores: { public: 0, job: 0, postgrad: 3 } },
+      { label: "先比较每条路最坏会发生什么", signal: "你需要先看见风险和转轨成本", scores: { public: 1, job: 1, postgrad: 1 } },
     ],
   },
   {
     eyebrow: "外部期待",
-    title: "家人说“稳定最重要”，而你还不确定。你会：",
+    title: "家人说“稳定最重要”，而你还不确定。你更接近：",
     options: [
-      "先把稳定路线纳入选择，不急着否定",
-      "把自己的顾虑说清楚，再一起比较",
-      "先用行动验证兴趣，有结果再沟通",
-      "暂时不谈，等自己更确定一点",
+      { label: "先把稳定路线纳入选择，不急着否定", signal: "你愿意认真考虑稳定路线，但还需要形成自己的理由", scores: { public: 3, job: 0, postgrad: 1 } },
+      { label: "先用实习证明自己能走另一条路", signal: "你希望通过成果建立自主选择权", scores: { public: 0, job: 3, postgrad: 0 } },
+      { label: "先提升学历，再和家人讨论长期选择", signal: "你把升学视为扩大选择范围的方式", scores: { public: 0, job: 0, postgrad: 3 } },
+      { label: "把自己的顾虑说清楚，再一起比较", signal: "你愿意协商现实约束，而不是被动接受", scores: { public: 2, job: 1, postgrad: 1 } },
     ],
   },
   {
-    eyebrow: "困难反馈",
-    title: "一项任务比预想难很多，你第一反应通常是：",
+    eyebrow: "面对规则",
+    title: "一项任务流程很多、标准明确，还需要反复核对，你会：",
     options: [
-      "先怀疑是不是方向选错了",
-      "拆小任务，看看具体卡在哪里",
-      "找参考答案，先跑通一次完整流程",
-      "换一项任务，比较哪种困难更能接受",
+      { label: "按流程拆开完成，正确比快更重要", signal: "你对规则型任务有一定耐受度", scores: { public: 3, job: 1, postgrad: 1 } },
+      { label: "先找工具自动化重复步骤", signal: "你倾向用技术改善流程", scores: { public: 1, job: 3, postgrad: 0 } },
+      { label: "先理解规则为什么这样设计", signal: "你更关注规则背后的原理", scores: { public: 1, job: 0, postgrad: 3 } },
+      { label: "如果长期重复，我可能很难坚持", signal: "重复性工作可能影响你的持续投入", scores: { public: 0, job: 2, postgrad: 1 } },
     ],
   },
   {
     eyebrow: "现在最怕",
-    title: "如果必须选一个，你此刻最想解决的是：",
+    title: "如果只能先解决一个问题，你此刻最担心什么？",
     options: [
-      "怕选错，投入很久后才后悔",
-      "怕来不及，错过关键准备窗口",
-      "怕能力不够，努力也没有结果",
-      "信息太多，不知道第一步从哪开始",
+      { label: "选错方向，投入很久后才后悔", signal: "你需要低成本体验，而不是立即押注", scores: { public: 1, job: 1, postgrad: 1 } },
+      { label: "起步太晚，错过关键准备窗口", signal: "你关注时间窗口，需要尽快补足路径信息", scores: { public: 2, job: 1, postgrad: 2 } },
+      { label: "能力不够，即使努力也没有结果", signal: "你需要用一次小任务获得能力基线", scores: { public: 1, job: 1, postgrad: 1 } },
+      { label: "信息太多，不知道第一步从哪开始", signal: "当前最大的阻力是信息没有变成行动", scores: { public: 2, job: 1, postgrad: 1 } },
     ],
   },
 ];
 
-const pathData: Record<
-  PathId,
-  {
-    name: string;
-    icon: string;
-    status: string;
-    accent: string;
-    reason: string;
-    gap: string;
-    test: string;
-    window: string;
-  }
-> = {
+const pathData: Record<PathId, {
+  name: string;
+  icon: string;
+  tone: string;
+  summary: string;
+  evidence: string[];
+  gap: string;
+}> = {
+  public: {
+    name: "体制内人生",
+    icon: "公",
+    tone: "green",
+    summary: "稳定、地域与规则型任务与你当前表达的生活期待存在连接。",
+    evidence: ["希望留在省会或家乡附近", "重视生活的可预期性", "愿意尝试规则明确的信息任务"],
+    gap: "你对真实岗位内容、收入节奏和临时任务仍停留在想象。",
+  },
   job: {
-    name: "企业后端求职",
-    icon: "⌁",
-    status: "值得探索 · 实践待补",
-    accent: "violet",
-    reason: "专业相关，已有课程项目，对做出可见成果有兴趣。",
-    gap: "工程能力、项目深度、真实工作体验",
-    test: "部署一个后端接口，并获得一次代码反馈",
-    window: "大三上前可与考研并行验证",
+    name: "企业职场人生",
+    icon: "职",
+    tone: "violet",
+    summary: "计算机专业和课程项目为企业求职保留了现实入口。",
+    evidence: ["专业与技术岗位相关", "做过课程项目", "愿意通过成果验证能力"],
+    gap: "缺少真实项目、实习体验和对工作强度的判断。",
   },
   postgrad: {
-    name: "计算机考研",
-    icon: "◇",
-    status: "基础尚可 · 动机待验",
-    accent: "blue",
-    reason: "专业基础中等，愿意长期投入，但研究兴趣还不清晰。",
-    gap: "目标院校、研究兴趣、数学与专业课水平",
-    test: "体验一节专业课，完成三所院校对比",
-    window: "大三上确定目标前仍可调整",
-  },
-  public: {
-    name: "公考 / 考编",
-    icon: "▦",
-    status: "轻量探索 · 认知不足",
-    accent: "green",
-    reason: "稳定和地域偏好较强，但对岗位与考试仍停留在印象层。",
-    gap: "岗位限制、行测基础、对工作内容的真实认知",
-    test: "完成 30 分钟行测体验，筛选 10 个可报岗位",
-    window: "现阶段先验证，不建议过早单线投入",
+    name: "继续升学人生",
+    icon: "研",
+    tone: "blue",
+    summary: "继续学习可能扩大选择范围，但当前研究动机仍不清晰。",
+    evidence: ["专业基础中等", "愿意进行长期投入", "仍希望保留职业选择"],
+    gap: "需要区分专业兴趣、学历需求和暂缓选择三种动机。",
   },
 };
 
-const planWeeks = [
+const promptAnswers: Record<string, string> = {
+  "上岸后真的都是朝九晚五吗？": "岗位、地区和阶段差异很大。稳定不等于每天轻松，材料、协调、窗口服务和临时任务都可能改变工作节奏。先体验具体场景，比只看“稳定”更重要。",
+  "基层岗位每天在做什么？": "可能涉及政策落实、材料整理、群众沟通、部门协调和突发事项。真正要验证的是：你是否能接受规则、服务和重复沟通共同构成的工作。",
+  "家乡岗和异地岗怎么选？": "不能只比较竞争热度。地域、生活成本、家庭支持、岗位内容和长期留下的意愿，都应该进入选择依据。",
+  "如果考了两年还没上岸呢？": "规划需要提前设置止损点和可迁移能力。备考过程中形成的阅读、写作、资料分析和表达能力，也应能服务其他路径。",
+};
+
+const lifeScenes: {
+  time: string;
+  chapter: string;
+  title: string;
+  story: string;
+  message: string;
+  options: { label: string; signal: string; delta: Partial<Record<LifeDimension, number>> }[];
+}[] = [
   {
-    week: "第 1 周",
-    title: "把模糊名字变成真实信息",
-    time: "3.5 小时",
-    tasks: [
-      "调研 10 个后端实习 JD，标记重复技能",
-      "对比 3 所目标院校的考试与培养信息",
-      "筛选目标地区 10 个可报公考岗位",
+    time: "入职第 21 天 · 17:26",
+    chapter: "第一幕 · 工作内容",
+    title: "下班前，临时任务来了",
+    story: "你正准备收拾东西，工作群里突然发来消息：需要协调三个部门，今晚完成一份情况汇总。朋友已经在楼下等你吃饭。",
+    message: "办公室：这份材料比较急，数据口径记得和三个部门确认。",
+    options: [
+      { label: "先确认优先级和完成标准，再逐个协调", signal: "你愿意在规则内主动澄清任务", delta: { structure: 8, reality: 6 } },
+      { label: "取消聚会，先一个人把材料全部做完", signal: "你能承担临时任务，但工作边界可能被压缩", delta: { structure: 5, boundary: -6, reality: 5 } },
+      { label: "心里落差很大：不是说工作稳定吗？", signal: "你开始区分“稳定”与“轻松”", delta: { reality: 10, boundary: 3 } },
     ],
-    proof: "提交一份三路径信息对比表，所有信息注明来源",
   },
   {
-    week: "第 2 周",
-    title: "获得一次真实手感",
-    time: "6 小时",
-    tasks: [
-      "部署一个可访问的后端接口",
-      "完成一套 30 分钟行测体验题",
-      "旁听一节研究生专业课程并记录感受",
+    time: "入职第 47 天 · 10:15",
+    chapter: "第二幕 · 群众沟通",
+    title: "对方不接受你的解释",
+    story: "一位办事群众因为材料不全往返两次，情绪很激动。规定不能绕开，但对方确实遇到了困难。",
+    message: "群众：我都跑两趟了，你们到底能不能一次说清楚？",
+    options: [
+      { label: "先听完问题，再把缺失材料和替代办法写清楚", signal: "你愿意在规则内提供具体帮助", delta: { service: 10, structure: 6 } },
+      { label: "严格按规定回复，避免承担额外风险", signal: "你重视边界和合规，但服务主动性仍待验证", delta: { structure: 9, service: -2 } },
+      { label: "请有经验的同事一起处理，并记录这次问题", signal: "你愿意求助并把个案变成经验", delta: { service: 6, reality: 7 } },
     ],
-    proof: "代码链接、体验题结果、课程体验记录齐全",
   },
   {
-    week: "第 3 周",
-    title: "让外部反馈进入罗盘",
-    time: "3 小时",
-    tasks: [
-      "记录三类任务中的投入感与困难类型",
-      "访谈一名在读研究生或开发实习生",
-      "确认哪些结果可以写入成长画像",
+    time: "入职第 100 天 · 20:38",
+    chapter: "第三幕 · 同龄比较",
+    title: "室友升职加薪了",
+    story: "大学室友晒出晋升消息，收入增长很快。你的生活更可预期，但成长速度与想象不同。",
+    message: "朋友圈：加入新团队，继续冲！感谢这一年的全力以赴。",
+    options: [
+      { label: "有点羡慕，但我更看重现在的生活节奏", signal: "稳定与生活节奏仍是你的主动选择", delta: { boundary: 9, reality: 7 } },
+      { label: "开始担心自己会不会失去成长空间", signal: "长期成长仍是不能忽略的需求", delta: { reality: 9, boundary: -2 } },
+      { label: "给自己安排一项长期学习计划", signal: "你希望在稳定环境中继续积累", delta: { structure: 6, boundary: 5 } },
     ],
-    proof: "结构化复盘表 + 至少一条外部反馈",
   },
   {
-    week: "第 4 周",
-    title: "只决定下一个阶段",
-    time: "2 小时",
-    tasks: [
-      "根据证据重新比较三条路径",
-      "选择一条主路径和一条探索路径",
-      "确认下学期的第一个里程碑",
+    time: "入职第 180 天 · 周六",
+    chapter: "第四幕 · 人生答案",
+    title: "这就是你想要的“岸”吗？",
+    story: "半年过去，你有过正常下班的傍晚，也遇到过临时任务和复杂沟通。稳定是真的，具体而琐碎也是真的。",
+    message: "成长罗盘：现在回头看，你为什么想上岸？",
+    options: [
+      { label: "我能接受这些代价，这种生活值得继续了解", signal: "体制内生活从想象变成了可接受的具体选择", delta: { service: 6, reality: 10 } },
+      { label: "稳定吸引我，但我还要了解具体岗位", signal: "你需要把抽象方向落实到岗位层面", delta: { reality: 10, structure: 4 } },
+      { label: "和想象不同，我想把其他人生也保留下来", signal: "你愿意基于体验修正原有期待", delta: { reality: 12, boundary: 6 } },
     ],
-    proof: "确认路径选择，并生成下一阶段计划",
   },
+];
+
+const planTasks = [
+  { day: "DAY 1", title: "筛选 10 个真实可报岗位", resource: "岗位筛选清单", criteria: "记录专业、学历、地域、岗位内容与限制条件" },
+  { day: "DAY 3", title: "完成 30 分钟行测体验", resource: "华图行测体验题", criteria: "完成资料分析与判断推理各一组，并记录真实感受" },
+  { day: "DAY 5", title: "拆解一份基层岗位工作记录", resource: "岗位认知卡", criteria: "写下能接受、不能接受和仍想追问的各 1 项" },
+  { day: "DAY 7", title: "确认是否进入正式考公规划", resource: "AI 周复盘", criteria: "选择继续探索、保留观察或暂不考虑，并说明依据" },
 ];
 
 const stageRank: Record<Stage, number> = {
@@ -203,9 +225,10 @@ const stageRank: Record<Stage, number> = {
   quiz: 0,
   result: 1,
   profile: 1,
-  paths: 2,
-  plan: 3,
-  calibration: 4,
+  futures: 2,
+  simulation: 3,
+  recalibration: 4,
+  plan: 5,
 };
 
 export default function Home() {
@@ -213,28 +236,71 @@ export default function Home() {
   const [quizIndex, setQuizIndex] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
-  const [copied, setCopied] = useState(false);
-  const [mainPath, setMainPath] = useState<PathId>("job");
-  const [explorePath, setExplorePath] = useState<PathId>("postgrad");
-  const [activeWeek, setActiveWeek] = useState(0);
-  const [decision, setDecision] = useState<"accept" | "partial" | "reject" | null>(null);
+  const [consent, setConsent] = useState(true);
+  const [resumeName, setResumeName] = useState("");
+  const [activePrompt, setActivePrompt] = useState(Object.keys(promptAnswers)[0]);
+  const [lifeIndex, setLifeIndex] = useState(0);
+  const [lifeAnswers, setLifeAnswers] = useState<number[]>([]);
+  const [selectedLifeAnswer, setSelectedLifeAnswer] = useState<number | null>(null);
+  const [reaction, setReaction] = useState("");
+  const [completedTasks, setCompletedTasks] = useState<number[]>([]);
 
   const currentRank = stageRank[stage];
-  const progress = useMemo(
-    () => ((quizIndex + 1) / questions.length) * 100,
-    [quizIndex],
+  const quizProgress = ((quizIndex + 1) / questions.length) * 100;
+  const lifeProgress = ((lifeIndex + 1) / lifeScenes.length) * 100;
+
+  const pathRanking = useMemo(() => {
+    const totals: Record<PathId, number> = { public: 5, job: 3, postgrad: 2 };
+    answers.forEach((answer, index) => {
+      if (answer < 0) return;
+      const option = questions[index]?.options[answer];
+      if (!option) return;
+      (Object.keys(totals) as PathId[]).forEach((id) => {
+        totals[id] += option.scores[id];
+      });
+    });
+    return (Object.keys(totals) as PathId[]).sort((a, b) => totals[b] - totals[a]);
+  }, [answers]);
+
+  const profileSignals = useMemo(
+    () => answers
+      .map((answer, index) => answer >= 0 ? questions[index]?.options[answer]?.signal : null)
+      .filter((signal): signal is string => Boolean(signal))
+      .slice(0, 4),
+    [answers],
   );
+
+  const lifeStats = useMemo(() => {
+    const stats: Record<LifeDimension, number> = { service: 44, structure: 58, boundary: 52, reality: 36 };
+    lifeAnswers.forEach((answer, index) => {
+      const option = lifeScenes[index]?.options[answer];
+      if (!option) return;
+      (Object.keys(option.delta) as LifeDimension[]).forEach((key) => {
+        stats[key] = Math.max(12, Math.min(92, stats[key] + (option.delta[key] ?? 0)));
+      });
+    });
+    return stats;
+  }, [lifeAnswers]);
+
+  const lifeEvidence = lifeAnswers
+    .map((answer, index) => lifeScenes[index]?.options[answer]?.signal)
+    .filter(Boolean) as string[];
+
+  const planProgress = Math.round((completedTasks.length / planTasks.length) * 100);
 
   function resetDemo() {
     setStage("landing");
     setQuizIndex(0);
     setAnswers([]);
     setSelectedAnswer(null);
-    setCopied(false);
-    setMainPath("job");
-    setExplorePath("postgrad");
-    setActiveWeek(0);
-    setDecision(null);
+    setConsent(true);
+    setResumeName("");
+    setActivePrompt(Object.keys(promptAnswers)[0]);
+    setLifeIndex(0);
+    setLifeAnswers([]);
+    setSelectedLifeAnswer(null);
+    setReaction("");
+    setCompletedTasks([]);
   }
 
   function nextQuestion() {
@@ -243,9 +309,9 @@ export default function Home() {
     setSelectedAnswer(null);
     if (quizIndex === questions.length - 1) {
       setStage("result");
-      return;
+    } else {
+      setQuizIndex((current) => current + 1);
     }
-    setQuizIndex((current) => current + 1);
   }
 
   function skipQuestion() {
@@ -253,68 +319,49 @@ export default function Home() {
     setSelectedAnswer(null);
     if (quizIndex === questions.length - 1) {
       setStage("result");
-      return;
-    }
-    setQuizIndex((current) => current + 1);
-  }
-
-  function copyResult() {
-    const text =
-      "我的初始成长原型是「多线加载型」：不是没有目标，而是后台同时运行了太多任务。#华图成长罗盘";
-    if (navigator.clipboard) navigator.clipboard.writeText(text).catch(() => {});
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1800);
-  }
-
-  function setAsMain(id: PathId) {
-    setMainPath(id);
-    if (explorePath === id) {
-      setExplorePath(id === "job" ? "postgrad" : "job");
+    } else {
+      setQuizIndex((current) => current + 1);
     }
   }
 
-  function setAsExplore(id: PathId) {
-    if (mainPath !== id) setExplorePath(id);
+  function nextLifeScene() {
+    if (selectedLifeAnswer === null) return;
+    setLifeAnswers((current) => [...current, selectedLifeAnswer]);
+    setSelectedLifeAnswer(null);
+    if (lifeIndex === lifeScenes.length - 1) {
+      setStage("recalibration");
+    } else {
+      setLifeIndex((current) => current + 1);
+    }
+  }
+
+  function toggleTask(index: number) {
+    setCompletedTasks((current) => current.includes(index)
+      ? current.filter((item) => item !== index)
+      : [...current, index]);
   }
 
   return (
     <main className={`app-shell stage-${stage}`}>
       <header className="topbar">
         <button className="brand" onClick={resetDemo} aria-label="返回首页">
-          <span className="brand-mark">
-              <img src={`${basePath}/logo.png`} alt="" />
-          </span>
-          <span>
-            <strong>华图成长罗盘</strong>
-            <small>GROWTH COMPASS</small>
-          </span>
+          <span className="brand-mark"><img src={`${basePath}/logo.png`} alt="" /></span>
+          <span><strong>华图成长罗盘</strong><small>GROWTH COMPASS</small></span>
         </button>
         <div className="topbar-actions">
-          <span className="fallback-pill">
-            <i /> 静态演示数据 · 离线可运行
-          </span>
-          {stage !== "landing" && (
-            <button className="ghost-button compact" onClick={resetDemo}>
-              ↻ 重置 Demo
-            </button>
-          )}
+          <span className="fallback-pill"><i /> 虚构样例 · 静态 Demo</span>
+          {stage !== "landing" && <button className="ghost-button compact" onClick={resetDemo}>↻ 重置 Demo</button>}
         </div>
       </header>
 
       {stage !== "landing" && stage !== "quiz" && (
-        <nav className="journey-nav" aria-label="成长罗盘进度">
-          {stages.slice(1).map((item, index) => {
+        <nav className="journey-nav" aria-label="体验进度">
+          {journeySteps.map((item, index) => {
             const rank = index + 1;
             return (
-              <div
-                className={`journey-step ${rank <= currentRank ? "is-active" : ""} ${rank < currentRank ? "is-done" : ""}`}
-                key={item.id}
-              >
+              <div className={`journey-step ${rank <= currentRank ? "is-active" : ""} ${rank < currentRank ? "is-done" : ""}`} key={item.label}>
                 <span>{rank < currentRank ? "✓" : `0${rank}`}</span>
-                <div>
-                  <small>{item.short}</small>
-                  <strong>{item.label}</strong>
-                </div>
+                <div><small>{item.short}</small><strong>{item.label}</strong></div>
               </div>
             );
           })}
@@ -325,47 +372,25 @@ export default function Home() {
         <section className="landing-page">
           <div className="landing-copy">
             <div className="eyebrow-pill">✦ 给还没想好未来的你</div>
-            <h1>
-              你<span>迷茫</span>吗？
-            </h1>
-            <p className="landing-lead">
-              大家好像都在往前走，而你还在考研、公考和实习之间反复横跳。
-              先别急着决定一生，用 3 分钟看看你的成长罗盘卡在哪一步。
-            </p>
+            <h1>你<span>迷茫</span>吗？</h1>
+            <p className="landing-lead">大家好像都在往前走，而你还在考研、公考和实习之间反复横跳。先别急着决定一生，用 3 分钟看看哪种未来值得你先体验。</p>
             <div className="landing-actions">
-              <button className="primary-button" onClick={() => setStage("quiz")}>
-                测测我的成长状态 <span>→</span>
-              </button>
-              <span>8 道情境题 · 没有标准答案</span>
+              <button className="primary-button" onClick={() => setStage("quiz")}>测测我的成长状态 <span>→</span></button>
+              <span>8 道人生情境 · 没有标准答案</span>
             </div>
             <div className="principle-row">
               <div><b>01</b><span>不替你决定</span></div>
               <div><b>02</b><span>每个判断有依据</span></div>
-              <div><b>03</b><span>用行动校准未来</span></div>
+              <div><b>03</b><span>先体验再规划</span></div>
             </div>
           </div>
-
           <div className="landing-visual" aria-label="林小北收到的未来提醒">
-            <div className="orbital orbital-one" />
-            <div className="orbital orbital-two" />
-            <div className="compass-core">
-              <span>N</span>
-              <strong>?</strong>
-              <small>下一步在哪</small>
-            </div>
-            <article className="floating-card card-chat">
-              <div className="avatar purple">研</div>
-              <div><small>考研群 · 12 条新消息</small><b>目标院校都定了吗？</b></div>
-            </article>
-            <article className="floating-card card-offer">
-              <div className="avatar orange">聘</div>
-              <div><small>朋友圈</small><b>室友拿到第一份实习 Offer</b></div>
-            </article>
-            <article className="floating-card card-family">
-              <div className="avatar green">家</div>
-              <div><small>妈妈</small><b>要不要早点准备考公？</b></div>
-            </article>
-            <div className="status-sticker">三个方向同时加载中…</div>
+            <div className="orbital orbital-one" /><div className="orbital orbital-two" />
+            <div className="compass-core"><span>N</span><strong>?</strong><small>下一步在哪</small></div>
+            <article className="floating-card card-chat"><div className="avatar purple">研</div><div><small>考研群 · 12 条新消息</small><b>目标院校都定了吗？</b></div></article>
+            <article className="floating-card card-offer"><div className="avatar orange">聘</div><div><small>朋友圈</small><b>室友拿到第一份实习 Offer</b></div></article>
+            <article className="floating-card card-family"><div className="avatar green">家</div><div><small>妈妈</small><b>要不要早点准备考公？</b></div></article>
+            <div className="status-sticker">三个未来正在靠近…</div>
           </div>
         </section>
       )}
@@ -373,42 +398,28 @@ export default function Home() {
       {stage === "quiz" && (
         <section className="quiz-page">
           <div className="quiz-aside">
-            <span className="section-kicker">01 · 初始定位</span>
-            <h2>答案不必漂亮，<br />真实就好。</h2>
-            <p>这些题只用于形成初始状态，不是心理测评，也不会决定你适合什么职业。</p>
+            <span className="section-kicker">01 · 人生探索</span>
+            <h2>别选正确答案，<br />选真实反应。</h2>
+            <p>这些情境只用于发现值得体验的未来，不是心理测评，也不会直接决定你适合什么职业。</p>
             <div className="quiz-count"><strong>{String(quizIndex + 1).padStart(2, "0")}</strong><span>/ {String(questions.length).padStart(2, "0")}</span></div>
           </div>
           <div className="quiz-card">
-            <div className="progress-track"><i style={{ width: `${progress}%` }} /></div>
+            <div className="progress-track"><i style={{ width: `${quizProgress}%` }} /></div>
             <span className="question-eyebrow">{questions[quizIndex].eyebrow}</span>
             <h3>{questions[quizIndex].title}</h3>
             <div className="option-list" role="radiogroup" aria-label="选择最接近的回答">
               {questions[quizIndex].options.map((option, index) => (
-                <button
-                  key={option}
-                  className={selectedAnswer === index ? "is-selected" : ""}
-                  onClick={() => setSelectedAnswer(index)}
-                  role="radio"
-                  aria-checked={selectedAnswer === index}
-                >
-                  <span>{String.fromCharCode(65 + index)}</span>
-                  {option}
-                  <i>{selectedAnswer === index ? "✓" : ""}</i>
+                <button key={option.label} className={selectedAnswer === index ? "is-selected" : ""} onClick={() => setSelectedAnswer(index)} role="radio" aria-checked={selectedAnswer === index}>
+                  <span>{String.fromCharCode(65 + index)}</span>{option.label}<i>{selectedAnswer === index ? "✓" : ""}</i>
                 </button>
               ))}
             </div>
             <div className="quiz-footer">
               <div className="quiz-footer-actions">
                 <button className="skip-button" onClick={skipQuestion}>暂时跳过</button>
-                <button
-                  className="primary-button"
-                  onClick={nextQuestion}
-                  disabled={selectedAnswer === null}
-                >
-                  {quizIndex === questions.length - 1 ? "生成我的初始状态" : "下一题"} <span>→</span>
-                </button>
+                <button className="primary-button" onClick={nextQuestion} disabled={selectedAnswer === null}>{quizIndex === questions.length - 1 ? "生成探索画像" : "下一题"} <span>→</span></button>
               </div>
-              <small>你的答案仅用于本次 Demo</small>
+              <small>答案仅用于本次 Demo，可随时重置</small>
             </div>
           </div>
         </section>
@@ -417,157 +428,150 @@ export default function Home() {
       {stage === "result" && (
         <section className="content-page result-page">
           <div className="page-heading centered">
-            <span className="section-kicker">你的初始成长状态 · v1</span>
-            <h2>多线加载型</h2>
-            <p>不是没有目标，而是后台同时运行了太多任务。</p>
+            <span className="section-kicker">探索画像 · v0</span>
+            <h2>稳中探索型</h2>
+            <p>你想要确定性，但不希望因为害怕选错，就把未来交给一个标签。</p>
           </div>
-
           <div className="result-grid">
             <article className="share-card">
-              <div className="share-top"><span>HUATU GROWTH TYPE</span><b>HT · 04</b></div>
-              <div className="type-symbol"><span>LOADING</span><strong>∞</strong></div>
-              <h3>多线加载型</h3>
-              <p>考研、公考、实习都不想错过。你的优势是愿意保留可能，风险是精力同时摊在太多方向。</p>
-              <div className="share-tags"><span># 方向探索中</span><span># 信息收藏家</span><span># 稳定优先</span></div>
-              <footer><b>华图成长罗盘</b><span>测出来不算，走出来才算 →</span></footer>
+              <div className="share-top"><span>YOUR GROWTH SIGNAL</span><b>V0 · EXPLORING</b></div>
+              <div className="type-symbol"><span>STEADY</span><strong>↗</strong></div>
+              <h3>稳中探索型</h3>
+              <p>你会认真考虑稳定、地域和现实代价，同时也希望在真正投入前，先看看那种生活是否适合自己。</p>
+              <div className="share-tags"><span># 稳定不是躺平</span><span># 家乡有引力</span><span># 先体验再押注</span></div>
+              <footer><b>华图成长罗盘</b><span>这只是起点，不是定论</span></footer>
             </article>
-
             <article className="state-panel">
-              <div className="panel-title"><div><span>初始状态罗盘</span><small>基于本次 8 道回答</small></div><b>v1</b></div>
-              <div className="dimension-list">
-                {[
-                  ["方向清晰度", "探索中", "44%"],
-                  ["行动启动", "容易过载", "68%"],
-                  ["探索主动性", "偏信息搜集", "52%"],
-                  ["风险偏好", "稳定优先", "72%"],
-                ].map(([label, state, width]) => (
-                  <div className="dimension" key={label}>
-                    <div><span>{label}</span><b>{state}</b></div>
-                    <i><em style={{ width }} /></i>
-                  </div>
+              <div className="panel-title"><div><span>本次选择透露的线索</span><small>每条都能回到你的具体回答</small></div><b>v0</b></div>
+              <div className="signal-list">
+                {(profileSignals.length ? profileSignals : ["当前回答较少，系统会在下一步补充事实信息"]).map((signal, index) => (
+                  <div className="signal-row" key={signal}><span>0{index + 1}</span><p>{signal}</p><b>{index < 2 ? "medium" : "low"}</b></div>
                 ))}
-                <div className="dimension locked">
-                  <div><span>能力准备度</span><b>待解锁</b></div>
-                  <i><em /></i>
-                  <small>补充专业、成绩与经历后生成</small>
-                </div>
               </div>
-              <div className="evidence-note"><b>当前最需要验证</b><p>你对三条路线的认识主要来自信息，还缺少真实体验证据。</p></div>
+              <div className="evidence-note"><b>还不能下结论</b><p>小游戏只能看见你的选择方式。学校、专业、经历和现实约束仍需要由你补充并确认。</p></div>
             </article>
           </div>
-
-          <div className="result-actions">
-            <button className="ghost-button" onClick={copyResult}>{copied ? "✓ 分享文案已复制" : "复制我的成长原型"}</button>
-            <button className="primary-button" onClick={() => setStage("profile")}>测出来不算，走出来才算 <span>→</span></button>
-          </div>
-          <p className="disclaimer">成长原型只是入口语言，不是人格或能力定论。所有状态会随真实行动持续更新。</p>
+          <div className="result-actions"><button className="primary-button" onClick={() => setStage("profile")}>补充事实，打开三种未来 <span>→</span></button></div>
+          <p className="disclaimer">探索画像只服务本次体验，不自动进入长期成长档案。</p>
         </section>
       )}
 
       {stage === "profile" && (
         <section className="content-page profile-page">
           <div className="page-heading split-heading">
-            <div><span className="section-kicker">补充事实证据</span><h2>让罗盘知道你现在在哪</h2></div>
-            <p>小游戏只看见了你的选择方式。再补充几个事实，系统才能判断三条路线的准备状态。</p>
+            <div><span className="section-kicker">补充事实与授权</span><h2>让选择有现实坐标</h2></div>
+            <p>以下使用虚构学生“林小北”的预置资料。你可以修改、跳过简历，或撤回授权。</p>
           </div>
           <div className="profile-layout">
-            <form className="profile-form" onSubmit={(event) => { event.preventDefault(); setStage("paths"); }}>
+            <form className="profile-form" onSubmit={(event) => { event.preventDefault(); if (consent) setStage("futures"); }}>
               <div className="form-row"><label>学校<input defaultValue="某普通本科高校" /></label><label>年级<select defaultValue="大二"><option>大一</option><option>大二</option><option>大三</option><option>大四</option></select></label></div>
               <div className="form-row"><label>专业<input defaultValue="计算机科学与技术" /></label><label>成绩位置<select defaultValue="专业中游"><option>专业前 20%</option><option>专业中游</option><option>专业后 30%</option></select></label></div>
               <label>已有经历<textarea defaultValue="完成过校园二手平台课程项目；暂无实习、竞赛和职业证书。" /></label>
-              <label>现实约束<textarea defaultValue="希望留在省会或家乡附近；家庭更倾向稳定就业。" /></label>
-              <div className="consent-line"><span>✓</span><p>仅将以上信息用于本次路径推演；你可以随时修正或删除。</p></div>
-              <button className="primary-button full" type="submit">解锁能力准备度与三条路径 <span>→</span></button>
+              <label>现实约束<textarea defaultValue="希望留在省会或家乡附近；家庭更倾向稳定就业；每周可用于探索约 6 小时。" /></label>
+              <label className="upload-box">可选：上传简历（Demo 不会实际上传）<input type="file" accept=".pdf,.doc,.docx" onChange={(event) => setResumeName(event.target.files?.[0]?.name ?? "")} /><span>{resumeName || "选择 PDF / Word 文件"}</span><small>仅用于演示授权与信息补充，不读取文件内容</small></label>
+              <label className="consent-check"><input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} /><span>我确认将以上信息用于本次路径推演；我可以随时修改或删除。</span></label>
+              <button className="primary-button full" type="submit" disabled={!consent}>生成我的平行人生入口 <span>→</span></button>
             </form>
             <aside className="profile-preview">
-              <span className="section-kicker light">即将固化</span>
-              <h3>初始画像快照 v1</h3>
-              <p>固化的是成长起点，不是把你定型。</p>
-              <div className="preview-evidence"><span>已确认</span><b>稳定与地域偏好</b><small>来源：情境题 + 用户填写</small></div>
-              <div className="preview-evidence"><span>待验证</span><b>对技术工作存在兴趣</b><small>来源：专业 + 课程项目</small></div>
-              <div className="preview-evidence"><span>事实</span><b>实践经历不足</b><small>来源：经历填写</small></div>
-              <footer>后续变化将生成 v2 / v3，不覆盖历史。</footer>
+              <span className="section-kicker light">准备生成</span><h3>初始画像快照 v1</h3><p>固化的是此刻的事实和选择依据，不是把你定型。</p>
+              <div className="preview-evidence"><span>已确认</span><b>稳定与地域偏好较高</b><small>来源：情境选择 + 现实约束</small></div>
+              <div className="preview-evidence"><span>事实</span><b>计算机专业，有课程项目</b><small>来源：用户填写</small></div>
+              <div className="preview-evidence"><span>待验证</span><b>能否接受体制内真实工作内容</b><small>来源：当前仍缺少生活体验</small></div>
+              <footer>下一步只推荐“值得体验”的未来，不推荐唯一答案。</footer>
             </aside>
           </div>
         </section>
       )}
 
-      {stage === "paths" && (
-        <section className="content-page paths-page">
+      {stage === "futures" && (
+        <section className="content-page futures-page">
           <div className="page-heading split-heading">
-            <div><span className="section-kicker">02 · 多路径推演</span><h2>不是选答案，是比较代价</h2></div>
-            <p>系统暂不推荐唯一方向。先保留一条主路径和一条探索路径，用四周行动补齐证据。</p>
+            <div><span className="section-kicker">02 · 三种平行人生</span><h2>有一种未来，值得你先进去看看</h2></div>
+            <p>系统根据情境选择与事实资料，给出体验顺序。它不是适合度排名，更不是成功率。</p>
           </div>
-          <div className="path-grid">
-            {(Object.keys(pathData) as PathId[]).map((id) => {
-              const item = pathData[id];
-              const isMain = mainPath === id;
-              const isExplore = explorePath === id;
+          <div className="future-grid">
+            {pathRanking.map((id, index) => {
+              const path = pathData[id];
+              const available = id === "public";
               return (
-                <article className={`path-card ${item.accent} ${isMain ? "is-main" : ""}`} key={id}>
-                  <div className="path-card-top"><span className="path-icon">{item.icon}</span>{isMain ? <b>主路径</b> : isExplore ? <b className="explore">探索路径</b> : <small>备选</small>}</div>
-                  <h3>{item.name}</h3><p className="path-status">{item.status}</p>
-                  <div className="path-fact"><span>为什么值得看</span><p>{item.reason}</p></div>
-                  <div className="path-fact"><span>关键缺口</span><p>{item.gap}</p></div>
-                  <div className="path-fact highlight"><span>建议验证</span><p>{item.test}</p></div>
-                  <div className="path-window">↗ 转轨窗口：{item.window}</div>
-                  <div className="path-actions">
-                    <button onClick={() => setAsMain(id)} disabled={isMain}>{isMain ? "✓ 当前主路径" : "设为主路径"}</button>
-                    <button onClick={() => setAsExplore(id)} disabled={isMain || isExplore}>{isExplore ? "✓ 已保留探索" : "保留探索"}</button>
-                  </div>
+                <article className={`future-card ${path.tone} ${index === 0 ? "is-recommended" : ""}`} key={id}>
+                  <div className="future-card-top"><span>{path.icon}</span><b>{index === 0 ? "优先体验" : index === 1 ? "值得保留" : "补充信息"}</b></div>
+                  <h3>{path.name}</h3><p>{path.summary}</p>
+                  <div className="future-evidence"><small>为什么出现</small>{path.evidence.map((item) => <span key={item}>✓ {item}</span>)}</div>
+                  <div className="future-gap"><small>仍待验证</small><p>{path.gap}</p></div>
+                  {available ? <button className="primary-button full" onClick={() => setStage("simulation")}>看看上岸后的真实生活 <span>→</span></button> : <button className="ghost-button full" disabled>更多人生正在生成中</button>}
                 </article>
               );
             })}
           </div>
-          <div className="decision-bar"><div><span>你的选择</span><b>{pathData[mainPath].name}</b><small>主路径</small><b>{pathData[explorePath].name}</b><small>探索路径</small></div><button className="primary-button" onClick={() => setStage("plan")}>生成四周成长实验 <span>→</span></button></div>
+          <section className="agent-panel">
+            <div className="agent-heading"><span className="agent-avatar">AI</span><div><small>未来体验 Agent</small><h3>你真正想问“岸上”的什么？</h3></div></div>
+            <div className="prompt-chips">{Object.keys(promptAnswers).map((prompt) => <button className={activePrompt === prompt ? "is-active" : ""} onClick={() => setActivePrompt(prompt)} key={prompt}>{prompt}</button>)}</div>
+            <div className="agent-reply"><span>成长罗盘</span><p>{promptAnswers[activePrompt]}</p></div>
+          </section>
+        </section>
+      )}
+
+      {stage === "simulation" && (
+        <section className="content-page simulation-page">
+          <div className="simulation-heading"><div><span className="section-kicker">03 · 体制内平行人生</span><h2>你选择的不是一场考试，<br />而是一种具体生活。</h2></div><div className="simulation-counter"><strong>0{lifeIndex + 1}</strong><span>/ 0{lifeScenes.length}</span></div></div>
+          <div className="simulation-layout">
+            <article className="story-phone">
+              <div className="phone-status"><span>平行人生</span><b>{lifeScenes[lifeIndex].time}</b></div>
+              <div className="life-progress"><i style={{ width: `${lifeProgress}%` }} /></div>
+              <span className="story-chapter">{lifeScenes[lifeIndex].chapter}</span><h3>{lifeScenes[lifeIndex].title}</h3><p className="story-copy">{lifeScenes[lifeIndex].story}</p>
+              <div className="message-bubble">{lifeScenes[lifeIndex].message}</div>
+              <div className="life-options" role="radiogroup" aria-label="选择你的反应">
+                {lifeScenes[lifeIndex].options.map((option, index) => <button className={selectedLifeAnswer === index ? "is-selected" : ""} onClick={() => setSelectedLifeAnswer(index)} role="radio" aria-checked={selectedLifeAnswer === index} key={option.label}><span>{selectedLifeAnswer === index ? "✓" : String.fromCharCode(65 + index)}</span>{option.label}</button>)}
+              </div>
+              <button className="primary-button full" onClick={nextLifeScene} disabled={selectedLifeAnswer === null}>{lifeIndex === lifeScenes.length - 1 ? "看看体验改变了什么" : "进入下一幕"} <span>→</span></button>
+            </article>
+            <aside className="life-dashboard">
+              <span className="section-kicker light">LIFE SIGNALS</span><h3>这不是适合度</h3><p>这里只记录你在模拟场景中的选择变化，不预测真实考试和就业结果。</p>
+              {([
+                ["公共服务意愿", lifeStats.service],
+                ["规则任务适应", lifeStats.structure],
+                ["生活边界需求", lifeStats.boundary],
+                ["岗位现实认知", lifeStats.reality],
+              ] as [string, number][]).map(([label, value]) => <div className="life-stat" key={label}><div><span>{label}</span><b>{value}</b></div><i><em style={{ width: `${value}%` }} /></i></div>)}
+              <div className="dashboard-note"><b>体验正在补充什么？</b><p>“我喜欢稳定”无法说明是否喜欢一份工作。真实场景帮助你看见自己能接受什么、不能接受什么。</p></div>
+            </aside>
+          </div>
+        </section>
+      )}
+
+      {stage === "recalibration" && (
+        <section className="content-page recalibration-page">
+          <div className="page-heading split-heading">
+            <div><span className="section-kicker">04 · 体验前后画像</span><h2>“想上岸”，现在有了更具体的含义</h2></div><p>以下都是候选证据。只有你确认后，它们才会进入正式画像并影响计划。</p>
+          </div>
+          <div className="before-after-grid">
+            <article className="snapshot-card before"><span>体验前 · v1</span><h3>公考认知来自“稳定”印象</h3><ul><li>希望留在家乡或省会</li><li>生活可预期很重要</li><li>不了解真实岗位内容</li></ul><footer>证据：情境选择 + 用户填写</footer></article>
+            <div className="evidence-bridge"><span>+{lifeEvidence.length}</span><b>条场景证据</b><i>→</i></div>
+            <article className="snapshot-card after"><span>体验后 · v2 候选</span><h3>公考仍值得探索，但理由更完整</h3><ul>{lifeEvidence.slice(-3).map((item) => <li key={item}>{item}</li>)}</ul><footer>状态：等待用户确认</footer></article>
+          </div>
+          <article className="recalibration-reason"><div><span>系统解释</span><h3>不是因为你“喜欢稳定”，就判断你适合考公。</h3></div><p>你对地域、规则型任务和公共服务场景表现出一定接受度，同时也注意到了成长速度、临时任务和岗位差异。现在最缺的不是另一份测评，而是一次真实考试与岗位体验。</p></article>
+          <div className="reaction-panel"><span>体验完这段生活，你现在更接近哪种感受？</span><div>{["这值得我继续了解", "可以接受，但先看具体岗位", "稳定吸引我，工作内容仍不确定", "和想象不同，保留其他人生"].map((item) => <button className={reaction === item ? "is-active" : ""} onClick={() => setReaction(item)} key={item}>{reaction === item ? "✓ " : ""}{item}</button>)}</div></div>
+          <div className="page-actions"><button className="primary-button" disabled={!reaction} onClick={() => setStage("plan")}>确认体验反馈，生成 7 天验证计划 <span>→</span></button></div>
         </section>
       )}
 
       {stage === "plan" && (
         <section className="content-page plan-page">
           <div className="page-heading split-heading">
-            <div><span className="section-kicker">03 · 四周成长实验</span><h2>不急着决定一生，先拿到新证据</h2></div>
-            <p>每项任务都有明确完成标准，也会告诉你：它将影响画像里的哪一项判断。</p>
+            <div><span className="section-kicker">05 · 7 天考公体验计划</span><h2>模拟人生可以重开，真实选择需要证据</h2></div><p>七天后不要求你决定考公，只要求你更清楚：岗位、考试和这种生活，是否值得继续投入。</p>
           </div>
-          <div className="plan-layout">
-            <div className="week-tabs">
-              {planWeeks.map((week, index) => (
-                <button className={activeWeek === index ? "is-active" : ""} onClick={() => setActiveWeek(index)} key={week.week}><span>{week.week}</span><b>{week.title}</b><small>{week.time}</small></button>
-              ))}
-            </div>
-            <article className="week-detail">
-              <div className="week-heading"><div><span>{planWeeks[activeWeek].week}</span><h3>{planWeeks[activeWeek].title}</h3></div><b>预计 {planWeeks[activeWeek].time}</b></div>
-              <div className="task-list">
-                {planWeeks[activeWeek].tasks.map((task, index) => <div className="task-row" key={task}><span>{index + 1}</span><p>{task}</p><i>{index === 0 && activeWeek === 1 ? "重点" : ""}</i></div>)}
-              </div>
-              <div className="proof-box"><span>✓ 完成标准</span><p>{planWeeks[activeWeek].proof}</p></div>
-              <div className="impact-box"><span>完成后将更新</span><p>{activeWeek === 0 ? "路径认知与信息充分度" : activeWeek === 1 ? "技术兴趣、行测基础与升学动机" : activeWeek === 2 ? "投入意愿与外部反馈" : "主路径优先级与学期目标"}</p></div>
-            </article>
+          <div className="plan-overview">
+            <article className="progress-card"><span>体验完成度</span><strong>{planProgress}%</strong><div><i style={{ width: `${planProgress}%` }} /></div><p>{completedTasks.length === planTasks.length ? "四项证据已集齐，可以进入正式规划。" : `还差 ${planTasks.length - completedTasks.length} 项真实证据`}</p></article>
+            <article className="plan-thesis"><span>本周验证假设</span><h3>我不仅向往“上岸”，也能接受公考的准备方式与具体岗位生活。</h3><p>来源：初始画像 v1 + 体制内人生体验反馈</p></article>
           </div>
-          <div className="plan-footer"><div><b>第一周从今天开始</b><p>所有任务使用静态样例，现场无需调用外部服务。</p></div><button className="primary-button" onClick={() => setStage("calibration")}>模拟两周后的成长反馈 <span>→</span></button></div>
-        </section>
-      )}
-
-      {stage === "calibration" && (
-        <section className="content-page calibration-page">
-          <div className="page-heading split-heading">
-            <div><span className="section-kicker">04 · 动态校准</span><h2>失败不是结论，它也是证据</h2></div>
-            <p>两次没完成开发任务，不等于不适合技术。系统先区分任务难度、方法和真实投入意愿。</p>
+          <div className="seven-day-list">
+            {planTasks.map((task, index) => {
+              const done = completedTasks.includes(index);
+              return <article className={done ? "is-done" : ""} key={task.day}><button onClick={() => toggleTask(index)} aria-label={`${done ? "取消完成" : "标记完成"}：${task.title}`}>{done ? "✓" : ""}</button><div className="task-day">{task.day}</div><div><h3>{task.title}</h3><p><b>完成标准：</b>{task.criteria}</p></div><span>{task.resource}</span></article>;
+            })}
           </div>
-          <div className="timeline-card">
-            <div className="snapshot snapshot-before"><span>初始画像 · v1</span><h3>技术兴趣 <b>medium</b></h3><p>依据：计算机专业、课程项目、自述兴趣</p><small>缺少真实体验</small></div>
-            <div className="event-stream"><span>成长事件</span><div className="event positive"><i>+</i><p>完成全部行测体验与岗位调研</p></div><div className="event positive"><i>+</i><p>连续两周完成资料分析任务</p></div><div className="event negative"><i>−</i><p>两次未完成开发任务，反馈投入意愿较低</p></div></div>
-            <div className="snapshot snapshot-after"><span>当前画像 · v2</span><h3>公考探索 <b>medium</b></h3><p>依据：任务完成、投入反馈、岗位调研</p><small>获得行为证据</small></div>
-          </div>
-          <div className="calibration-grid">
-            <article className="change-card"><div className="change-title"><span>路径优先级变化</span><b>3 项调整</b></div><div className="change-row"><span>企业求职</span><b>主路径</b><i>→</i><strong>探索路径</strong></div><div className="change-row"><span>公考 / 考编</span><b>轻量验证</b><i>→</i><strong>重点探索</strong></div><div className="change-row"><span>技术任务</span><b>6 小时 / 周</b><i>→</i><strong>2 小时 / 周</strong></div></article>
-            <article className="reason-card"><span>为什么调整</span><h3>不是因为一次测试，而是两周行动提供了新证据。</h3><p>系统提高公考探索权重，但不会立即完全放弃技术方向。下一阶段保留轻量开发任务，同时增加岗位调研、行测模块诊断和申论体验。</p><div className="status-line"><i /> 决策状态：需要你的确认</div></article>
-          </div>
-          {!decision ? (
-            <div className="calibration-actions"><button className="ghost-button" onClick={() => setDecision("partial")}>部分接受</button><button className="ghost-button" onClick={() => setDecision("reject")}>暂不调整</button><button className="primary-button" onClick={() => setDecision("accept")}>接受调整并生成下一阶段 <span>→</span></button></div>
-          ) : (
-            <div className="success-banner"><span>{decision === "reject" ? "↺" : "✓"}</span><div><b>{decision === "accept" ? "成长罗盘已更新至 v2" : decision === "partial" ? "已按你的选择部分更新" : "已保留原计划"}</b><p>{decision === "reject" ? "本次建议不会写入正式画像，你可以继续完成原计划。" : "你还没有决定一生，但已经知道下一步要验证什么。"}</p></div><button className="ghost-button" onClick={resetDemo}>重新演示</button></div>
-          )}
+          <div className="final-banner"><div><span>下一步不是报名</span><h3>先完成一次低成本验证，再决定是否进入正式考公规划。</h3></div><button className="ghost-button" onClick={resetDemo}>重新体验其他选择</button></div>
         </section>
       )}
     </main>

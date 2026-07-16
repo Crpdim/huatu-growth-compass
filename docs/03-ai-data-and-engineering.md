@@ -26,10 +26,18 @@ MVP 使用单体应用、一个主职业规划 Agent 和若干结构化能力模
 
 ### 成长实验规划
 
-- 将路径目标拆为四周任务；
+- 当前 Demo 先将体制内路径拆为 7 天验证任务，后续再扩展为四周和学期计划；
 - 根据可用时间和能力调整强度；
 - 每项任务绑定待验证假设、完成标准和成果证据；
 - 按任务相关性匹配华图或外部资源。
+
+### 未来生活体验
+
+- 根据正式画像选择“值得优先体验”的路径，不输出唯一答案或成功率；
+- 从路径模板读取工作内容、生活取舍、常见风险和转轨问题；
+- 用户在模拟场景中的选择只生成候选证据；
+- 用户确认后，体验反馈才能进入新画像版本并影响任务；
+- 当前 Demo 只完整实现体制内人生，考研与企业求职保留入口和静态说明。
 
 ### 动态校准
 
@@ -167,8 +175,8 @@ concern_source, user_confirmed, created_at, cleared_at
 2. 系统记录证据、来源和置信度；
 3. 用户确认、修正、驳回或删除；
 4. 系统生成只读初始画像快照 `v1`；
-5. 正式画像影响路径比较和任务生成；
-6. 任务结果、成果提交或用户修正形成 `GrowthEvent` 和候选证据；
+5. 正式画像影响路径比较、未来体验顺序和任务生成；
+6. 未来体验反馈、任务结果、成果提交或用户修正形成 `GrowthEvent` 和候选证据；
 7. 用户确认新证据后，系统生成当前画像新版本和差异摘要；
 8. 新版本或外部事件触发分级校准；
 9. 用户决定是否接受调整；证据不足时系统继续生成验证任务；
@@ -176,14 +184,15 @@ concern_source, user_confirmed, created_at, cleared_at
 
 ## 6. 页面与 API
 
-MVP 体验收敛为五个核心场景，路由可保持实现上的拆分：
+当前 Demo 体验可按以下场景拆分路由；静态实现仍可保留为单页状态切换：
 
 ```text
-/onboarding        冷启动与 AI 追问
-/compass           成长罗盘与证据画像
-/paths             三路径推演
-/actions           四周成长实验与成果提交
-/calibration       校准前后对比与学生确认
+/onboarding        “你迷茫吗？”与人生情境
+/profile           探索画像、事实补充与授权
+/futures           三种平行人生
+/experience/public 体制内未来生活体验
+/evidence-review   体验前后证据与用户确认
+/actions           7 天考公验证计划
 ```
 
 建议 API：
@@ -197,6 +206,9 @@ GET    /api/profile/timeline
 PATCH  /api/profile/evidence/:id
 GET    /api/paths
 POST   /api/paths/select
+GET    /api/path-experiences/:pathId
+POST   /api/path-experiences/:pathId/events
+POST   /api/path-experiences/:pathId/confirm
 GET    /api/tasks
 PATCH  /api/tasks/:id
 POST   /api/tasks/:id/evidence

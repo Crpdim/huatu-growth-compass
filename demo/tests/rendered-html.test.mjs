@@ -10,15 +10,18 @@ test("contains the complete Growth Compass demo journey", async () => {
 
   for (const content of [
     "你<span>迷茫</span>吗",
-    "多线加载型",
-    "企业后端求职",
-    "四周成长实验",
-    "动态校准",
-    "成长罗盘已更新至 v2",
+    "稳中探索型",
+    "三种平行人生",
+    "未来体验 Agent",
+    "体制内平行人生",
+    "体验前后画像",
+    "7 天考公体验计划",
   ]) {
     assert.match(page, new RegExp(content));
   }
 
+  assert.match(page, /公考仍值得探索，但理由更完整/);
+  assert.match(page, /更多人生正在生成中/);
   assert.doesNotMatch(page, /规划师|requires_human_review/);
 });
 
