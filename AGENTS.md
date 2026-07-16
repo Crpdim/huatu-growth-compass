@@ -4,18 +4,17 @@
 
 ## 1. 产品目标
 
-构建一个可演示的大学生全周期 AI 成长规划 Demo，跑通：
+构建一个可演示的大学生全周期 AI 成长规划 Demo：
 
 > 冷启动定位 → 动态画像 → 多路径推演 → 四周计划 → 任务反馈 → 动态校准
 
-产品不是通用聊天机器人、一次性职业测评或简历优化工具。
 
 ## 2. 核心产品语言
 
 - 产品名：华图成长罗盘；
-- 核心问题：我是谁、我现在在哪、我能去哪、下一步怎么走；
+- 核心问题：帮用户确认我是谁、我现在在哪、我能去哪、下一步怎么走；
 - 核心闭环：定位、定向、导航、校准；
-- 核心原则：不是替学生决定，而是提供依据、路径和下一步行动。
+- 核心原则：根据依据、路径和下一步行动。
 
 ## 3. 开发优先级
 
@@ -75,7 +74,127 @@ AI 接口优先返回结构化 JSON，至少包含：
 
 关键 AI 功能必须提供静态 fallback，确保演示不中断。
 
-## 7. 工程原则
+## 7. 已确认的技术栈
+
+以下信息来自当前仓库配置。修改依赖、命令或部署方式时，必须同步更新本节。
+
+### 7.1 项目结构
+
+- 产品与比赛文档位于仓库根目录和 `docs/`；
+- 前端应用位于 `demo/`，所有 npm 命令默认在该目录执行；
+- 当前应用采用单页状态切换，主要交互集中在 `demo/app/page.tsx`；
+- 全局样式位于 `demo/app/globals.css`；
+- 静态图片位于 `demo/public/`；
+- 当前没有业务后端、真实 AI 接口、登录和持久化数据库；
+- `demo/.openai/hosting.json` 中的 `d1`、`r2` 均为 `null`。
+
+### 7.2 运行环境与依赖
+
+- 包管理器：npm，锁文件为 `demo/package-lock.json`；
+- Node.js：`>=22.13.0`，GitHub Actions 使用 Node.js 22；
+- Next.js：16.2.6，使用 `app/` 目录；
+- React / React DOM：19.2.6；
+- TypeScript：5.9.3，`strict: true`、`noEmit: true`；
+- Tailwind CSS：4.2.1，通过 PostCSS 和 `@import "tailwindcss"` 接入；当前页面主体样式仍由 `globals.css` 中的手写 CSS 完成；
+- 本地与 Vinext 构建链路：Vinext 0.0.50、Vite 8.0.13、Cloudflare Vite Plugin 1.37.1、Wrangler 4.92.0；
+- 代码检查：ESLint 9.39.4、`eslint-config-next` 16.2.6；
+- 测试：Node.js 内置 test runner，当前断言文件为 `demo/tests/rendered-html.test.mjs`。
+
+版本号以 `demo/package.json` 和 `demo/package-lock.json` 为准，不凭记忆升级或替换依赖。
+
+### 7.3 两套构建链路
+
+当前仓库保留两套用途不同的构建命令：
+
+| 用途 | 命令 | 实际行为 | 主要产物 |
+|---|---|---|---|
+| 本地开发 | `npm run dev` | Vinext + Vite 开发服务器 | 默认本地地址 `http://localhost:3000` |
+| Vinext 构建 | `npm run build` | `vinext build`，包含 Worker 兼容构建 | `demo/dist/` |
+| Vinext 生产预览 | `npm run start` | 启动 Vinext 构建结果 | 本地服务 |
+| GitHub Pages 构建 | `npm run build:pages` | `next build`；在 GitHub Actions 环境中启用静态导出 | `demo/out/` |
+| 自动测试 | `npm test` | 先运行 Vinext 构建，再运行 Node.js 源码断言 | 测试结果 |
+| 代码检查 | `npm run lint` | 运行 ESLint | 检查结果 |
+
+注意：`npm test` 不会执行 GitHub Pages 静态导出。涉及页面、资源路径或部署的修改必须额外运行 Pages 构建。
+
+## 8. 已确认的开发与发布流程
+
+### 8.1 首次安装与本地预览
+
+在仓库根目录执行：
+
+```bash
+cd demo
+npm ci
+npm run dev
+```
+
+- 已存在依赖且锁文件未变化时，无需重复安装；
+- 开发服务器使用 Vinext/Vite；
+- 不通过直接打开 `out/index.html` 代替本地服务器；
+- `demo/.wrangler/`、`demo/.vinext/`、`demo/.next/`、`demo/dist/` 和 `demo/out/` 都是生成目录，不手工编辑。
+
+### 8.2 修改后的最低验证
+
+所有前端修改至少执行：
+
+```bash
+cd demo
+npm test
+GITHUB_ACTIONS=true GITHUB_REPOSITORY=Crpdim/huatu-growth-compass npm run build:pages
+cd ..
+git diff --check
+```
+
+这条 Pages 构建命令显式模拟仓库环境。缺少 `GITHUB_ACTIONS=true` 时，`next.config.ts` 不会启用 GitHub Pages 的 `output: "export"` 和仓库子路径。
+
+当前自动测试主要检查关键文案和元数据是否存在，尚未覆盖完整点击流程、视觉回归和真实 AI 行为。改动交互状态时，需要人工走查主链路：
+
+> 首页 → 人生课题 → 情境探索 → 画像确认 → 事实补充 → AI 成长坐标 → 三种人生 → 体制内体验 → 证据更新 → 7 天计划
+
+### 8.3 GitHub Pages 子路径
+
+- 线上地址：`https://crpdim.github.io/huatu-growth-compass/`；
+- `demo/next.config.ts` 在 GitHub Actions 中根据 `GITHUB_REPOSITORY` 生成 `/huatu-growth-compass`；
+- `basePath`、`assetPrefix` 和 `NEXT_PUBLIC_BASE_PATH` 由该配置统一设置；
+- 页面引用 `public/` 资源时必须使用 `NEXT_PUBLIC_BASE_PATH`，不要硬编码仓库名；
+- 图标和 Open Graph 图片当前也使用该前缀；
+- `trailingSlash: true` 已启用，保持静态路由兼容性。
+
+### 8.4 GitHub Pages 发布
+
+发布流程定义在 `.github/workflows/deploy-pages.yml`：
+
+1. 推送到 `main`，或手动触发 `workflow_dispatch`；
+2. GitHub Actions 使用 Node.js 22 和 `npm ci` 安装锁定依赖；
+3. 在 `demo/` 运行 `npm run build:pages`；
+4. 上传 `demo/out`；
+5. 使用 GitHub Pages 完成部署。
+
+不要提交或手工修改 `demo/out/`。发布状态以 GitHub Actions 的 `Deploy GitHub Pages` 工作流和线上页面为准。
+
+### 8.5 Sites / Cloudflare 相关文件
+
+- `demo/vite.config.ts`、`demo/worker/index.ts`、`demo/build/sites-vite-plugin.ts` 和 `demo/.openai/hosting.json` 支撑 Vinext / Cloudflare 兼容构建；
+- 当前交付渠道为本地预览和 GitHub Pages；
+- 未经用户明确要求，不发布到 Sites，也不新增 D1、R2 或 Cloudflare 资源；
+- 保留上述文件，不能因为当前只发 GitHub Pages 就删除 Vinext 构建链路。
+
+### 8.6 配置事实来源
+
+遇到不熟悉的流程时，按以下文件核对，不靠猜测：
+
+1. 依赖版本和命令：`demo/package.json`、`demo/package-lock.json`；
+2. GitHub Pages 导出和子路径：`demo/next.config.ts`；
+3. 本地 Vinext/Vite 行为：`demo/vite.config.ts`；
+4. Pages 自动发布：`.github/workflows/deploy-pages.yml`；
+5. Sites 资源声明：`demo/.openai/hosting.json`；
+6. 测试覆盖范围：`demo/tests/rendered-html.test.mjs`；
+7. 产品范围和完成状态：`docs/`、`TASKS.md`。
+
+如果本文与可执行配置冲突，以配置文件为准，并在同一次修改中修正本文。
+
+## 9. 工程原则
 
 - 优先使用团队熟悉的技术栈；
 - 保持单体应用，除非现有仓库已有明确架构；
@@ -86,7 +205,7 @@ AI 接口优先返回结构化 JSON，至少包含：
 - 所有 Demo 状态支持一键重置；
 - 新增功能必须同步更新相关 Markdown 文档。
 
-## 8. 修改流程
+## 10. 修改流程
 
 实现需求前：
 
