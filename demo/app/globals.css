@@ -46,8 +46,6 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .brand strong { display: block; font-size: 15px; letter-spacing: .04em; }
 .brand small { display: block; margin-top: 2px; color: var(--muted); font-size: 8px; letter-spacing: .18em; }
 .topbar-actions { display: flex; align-items: center; gap: 12px; }
-.fallback-pill { font-size: 11px; color: #56536b; border: 1px solid var(--line); background: rgba(255,255,255,.65); padding: 8px 12px; border-radius: 999px; }
-.fallback-pill i { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #64bd71; margin-right: 6px; box-shadow: 0 0 0 3px rgba(100,189,113,.14); }
 
 .primary-button, .ghost-button {
   border: 0;
@@ -349,7 +347,6 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 
 @media (max-width: 620px) {
   .topbar { height: 68px; padding: 0 18px; }
-  .fallback-pill { display: none; }
   .brand strong { font-size: 13px; }
   .content-page { padding: 48px 18px 70px; }
   .journey-nav { padding: 0 18px; }

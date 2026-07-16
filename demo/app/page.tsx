@@ -349,7 +349,6 @@ export default function Home() {
           <span><strong>华图成长罗盘</strong><small>GROWTH COMPASS</small></span>
         </button>
         <div className="topbar-actions">
-          <span className="fallback-pill"><i /> 虚构样例 · 静态 Demo</span>
           {stage !== "landing" && <button className="ghost-button compact" onClick={resetDemo}>↻ 重置 Demo</button>}
         </div>
       </header>
