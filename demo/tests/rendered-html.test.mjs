@@ -10,7 +10,7 @@ test("contains the complete Growth Compass demo journey", async () => {
 
   for (const content of [
     "你<span>迷茫</span>吗",
-    "先不选职业",
+    "先想生活",
     "现实探索型",
     "三种平行人生",
     "未来体验 Agent",

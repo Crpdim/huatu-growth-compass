@@ -34,11 +34,11 @@ const journeySteps = [
 ];
 
 const lifePurposes: { id: PurposeId; icon: string; title: string; description: string; signal: string; tag: string }[] = [
-  { id: "steady", icon: "稳", title: "找到一种可预期的生活", description: "希望工作、城市和生活节奏更确定，也能照顾家人。", signal: "你当前最想先解决生活稳定性与地域确定性", tag: "稳定不是躺平" },
+  { id: "steady", icon: "稳", title: "找到一种可预期的生活", description: "希望工作、城市和生活节奏更确定，也能照顾家人。", signal: "你当前最想先解决生活稳定性与地域确定性", tag: "稳定让我走得更远" },
   { id: "independent", icon: "立", title: "尽快实现经济独立", description: "想减少家庭压力，拥有不依赖别人做选择的底气。", signal: "你当前把经济独立和自主选择权放在优先位置", tag: "先获得选择权" },
-  { id: "growth", icon: "升", title: "获得更快的成长上升", description: "不想停在原地，希望能力、收入和平台都持续向上。", signal: "你当前更关心成长速度与长期上升空间", tag: "成长要看得见" },
-  { id: "self", icon: "我", title: "做一次真正属于自己的选择", description: "不想因为同学、家人或热门路线而随大流。", signal: "你当前最想确认自己的选择，而不是复制别人的答案", tag: "不把人生外包" },
-  { id: "unclear", icon: "?", title: "我还说不清，只想先走一步", description: "暂时没有答案，但不想继续停在信息搜集和反复纠结里。", signal: "你当前需要的不是立刻定方向，而是一个低成本起点", tag: "先走一步" },
+  { id: "growth", icon: "升", title: "获得更快的成长上升", description: "想继续往上走，让能力、收入和平台都持续成长。", signal: "你当前更关心成长速度与长期上升空间", tag: "成长要看得见" },
+  { id: "self", icon: "我", title: "做一次真正属于自己的选择", description: "想听清自己的声音，减少同学、家人和热门路线的影响。", signal: "你当前最想确认哪种选择真正属于自己", tag: "人生自己作答" },
+  { id: "unclear", icon: "?", title: "我还说不清，只想先走一步", description: "暂时没有答案，希望从一件小事开始积累真实体验。", signal: "你当前需要一个低成本起点，先积累真实体验", tag: "先走一步" },
 ];
 
 const questions: { eyebrow: string; title: string; options: QuizOption[] }[] = [
@@ -99,7 +99,7 @@ const questions: { eyebrow: string; title: string; options: QuizOption[] }[] = [
       { label: "先把稳定路线纳入选择，不急着否定", signal: "你愿意认真考虑稳定路线，但还需要形成自己的理由", scores: { public: 3, job: 0, postgrad: 1 } },
       { label: "先用实习证明自己能走另一条路", signal: "你希望通过成果建立自主选择权", scores: { public: 0, job: 3, postgrad: 0 } },
       { label: "先提升学历，再和家人讨论长期选择", signal: "你把升学视为扩大选择范围的方式", scores: { public: 0, job: 0, postgrad: 3 } },
-      { label: "把自己的顾虑说清楚，再一起比较", signal: "你愿意协商现实约束，而不是被动接受", scores: { public: 2, job: 1, postgrad: 1 } },
+      { label: "把自己的顾虑说清楚，再一起比较", signal: "你愿意协商现实约束，同时保留自己的判断", scores: { public: 2, job: 1, postgrad: 1 } },
     ],
   },
   {
@@ -116,7 +116,7 @@ const questions: { eyebrow: string; title: string; options: QuizOption[] }[] = [
     eyebrow: "现在最怕",
     title: "如果只能先解决一个问题，你此刻最担心什么？",
     options: [
-      { label: "选错方向，投入很久后才后悔", signal: "你需要低成本体验，而不是立即押注", scores: { public: 1, job: 1, postgrad: 1 } },
+      { label: "选错方向，投入很久后才后悔", signal: "一次低成本体验可以帮你降低押注风险", scores: { public: 1, job: 1, postgrad: 1 } },
       { label: "起步太晚，错过关键准备窗口", signal: "你关注时间窗口，需要尽快补足路径信息", scores: { public: 2, job: 1, postgrad: 2 } },
       { label: "能力不够，即使努力也没有结果", signal: "你需要用一次小任务获得能力基线", scores: { public: 1, job: 1, postgrad: 1 } },
       { label: "信息太多，不知道第一步从哪开始", signal: "当前最大的阻力是信息没有变成行动", scores: { public: 2, job: 1, postgrad: 1 } },
@@ -159,9 +159,9 @@ const pathData: Record<PathId, {
 };
 
 const promptAnswers: Record<string, string> = {
-  "上岸后真的都是朝九晚五吗？": "岗位、地区和阶段差异很大。稳定不等于每天轻松，材料、协调、窗口服务和临时任务都可能改变工作节奏。先体验具体场景，比只看“稳定”更重要。",
+  "上岸后真的都是朝九晚五吗？": "岗位、地区和阶段差异很大。稳定岗位也会遇到材料、协调、窗口服务和临时任务。体验几个具体场景，能让你更准确地理解“稳定”。",
   "基层岗位每天在做什么？": "可能涉及政策落实、材料整理、群众沟通、部门协调和突发事项。真正要验证的是：你是否能接受规则、服务和重复沟通共同构成的工作。",
-  "家乡岗和异地岗怎么选？": "不能只比较竞争热度。地域、生活成本、家庭支持、岗位内容和长期留下的意愿，都应该进入选择依据。",
+  "家乡岗和异地岗怎么选？": "建议一起比较竞争热度、生活成本、家庭支持、岗位内容，以及你长期留下的意愿。",
   "如果考了两年还没上岸呢？": "规划需要提前设置止损点和可迁移能力。备考过程中形成的阅读、写作、资料分析和表达能力，也应能服务其他路径。",
 };
 
@@ -182,7 +182,7 @@ const lifeScenes: {
     options: [
       { label: "先确认优先级和完成标准，再逐个协调", signal: "你愿意在规则内主动澄清任务", delta: { structure: 8, reality: 6 } },
       { label: "取消聚会，先一个人把材料全部做完", signal: "你能承担临时任务，但工作边界可能被压缩", delta: { structure: 5, boundary: -6, reality: 5 } },
-      { label: "心里落差很大：不是说工作稳定吗？", signal: "你开始区分“稳定”与“轻松”", delta: { reality: 10, boundary: 3 } },
+      { label: "心里落差很大：原来稳定也会加班", signal: "你开始理解稳定岗位的真实工作节奏", delta: { reality: 10, boundary: 3 } },
     ],
   },
   {
@@ -205,7 +205,7 @@ const lifeScenes: {
     message: "朋友圈：加入新团队，继续冲！感谢这一年的全力以赴。",
     options: [
       { label: "有点羡慕，但我更看重现在的生活节奏", signal: "稳定与生活节奏仍是你的主动选择", delta: { boundary: 9, reality: 7 } },
-      { label: "开始担心自己会不会失去成长空间", signal: "长期成长仍是不能忽略的需求", delta: { reality: 9, boundary: -2 } },
+      { label: "开始担心自己会不会失去成长空间", signal: "长期成长依然是你的重要需求", delta: { reality: 9, boundary: -2 } },
       { label: "给自己安排一项长期学习计划", signal: "你希望在稳定环境中继续积累", delta: { structure: 6, boundary: 5 } },
     ],
   },
@@ -389,13 +389,13 @@ export default function Home() {
           <div className="landing-copy">
             <div className="eyebrow-pill">✦ 给还没想好未来的你</div>
             <h1>你<span>迷茫</span>吗？</h1>
-            <p className="landing-lead">大家好像都在往前走，而你还在考研、公考和实习之间反复横跳。先别急着决定一生，用 3 分钟看看哪种未来值得你先体验。</p>
+            <p className="landing-lead">大家好像都在往前走，而你还在考研、公考和实习之间反复横跳。人生答案可以慢慢来，先花 3 分钟看看哪种未来值得体验。</p>
             <div className="landing-actions">
               <button className="primary-button" onClick={() => setStage("purpose")}>找到我最想解决的人生课题 <span>→</span></button>
               <span>1 个课题锚点 + 8 道人生情境</span>
             </div>
             <div className="principle-row">
-              <div><b>01</b><span>不替你决定</span></div>
+              <div><b>01</b><span>选择由你确认</span></div>
               <div><b>02</b><span>每个判断有依据</span></div>
               <div><b>03</b><span>先体验再规划</span></div>
             </div>
@@ -415,7 +415,7 @@ export default function Home() {
         <section className="purpose-page">
           <div className="purpose-heading">
             <span className="section-kicker">00 · 人生课题</span>
-            <h2>先不选职业。<br />你现在最想解决哪道生活题？</h2>
+            <h2>先想生活，<br />再看职业。</h2>
             <p>考公、考研和求职都只是路径。真正影响选择的，是你希望生活先发生什么变化。</p>
           </div>
           <div className="purpose-grid" role="radiogroup" aria-label="选择当前最想解决的人生课题">
@@ -434,7 +434,7 @@ export default function Home() {
             ))}
           </div>
           <div className="purpose-footer">
-            <p><b>这不是职业选择。</b>系统会把它作为本次探索的目的锚点，再结合情境选择和现实资料推演路径。</p>
+            <p><b>职业方向留到后面。</b>系统先记录你想解决的生活问题，再结合情境选择和现实资料推演路径。</p>
             <button className="primary-button" disabled={!selectedPurpose} onClick={() => setStage("quiz")}>带着这个问题继续 <span>→</span></button>
           </div>
         </section>
@@ -444,8 +444,8 @@ export default function Home() {
         <section className="quiz-page">
           <div className="quiz-aside">
             <span className="section-kicker">01 · 情境探索</span>
-            <h2>别选正确答案，<br />选真实反应。</h2>
-            <p>你正在解决：<b>{purpose.title}</b>。这些情境只用于补充选择依据，不会直接决定你适合什么职业。</p>
+            <h2>选你真实的反应，<br />这里没有标准答案。</h2>
+            <p>你正在解决：<b>{purpose.title}</b>。这些情境会补充选择依据，职业方向会在事实信息确认后再推演。</p>
             <div className="quiz-count"><strong>{String(quizIndex + 1).padStart(2, "0")}</strong><span>/ {String(questions.length).padStart(2, "0")}</span></div>
           </div>
           <div className="quiz-card">
@@ -475,19 +475,19 @@ export default function Home() {
           <div className="page-heading centered">
             <span className="section-kicker">探索画像 · v0</span>
             <h2>现实探索型</h2>
-            <p>你想先解决“{purpose.title}”，但不会只凭一个愿望就把未来交给某条路线。</p>
+            <p>你想先解决“{purpose.title}”，同时也会参考现实条件再选择路线。</p>
           </div>
           <div className="result-grid">
             <article className="share-card">
               <div className="share-top"><span>YOUR GROWTH SIGNAL</span><b>V0 · EXPLORING</b></div>
               <div className="type-symbol"><span>REALITY</span><strong>↗</strong></div>
               <h3>现实探索型</h3>
-              <p>你的目的锚点是“{purpose.title}”。你需要的不是一个职业标签，而是看见不同生活的收益、代价与第一步。</p>
+              <p>你的目的锚点是“{purpose.title}”。接下来需要看清不同生活的收益、代价与第一步。</p>
               <div className="share-tags"><span># {purpose.tag}</span><span># 选择要有依据</span><span># 先体验再押注</span></div>
-              <footer><b>华图成长罗盘</b><span>这只是起点，不是定论</span></footer>
+              <footer><b>华图成长罗盘</b><span>这是起点，结论会随经历更新</span></footer>
             </article>
             <article className="state-panel">
-              <div className="panel-title"><div><span>本次选择透露的线索</span><small>确认、驳回或返回重选，不让一次回答把你定型</small></div><b>v0</b></div>
+              <div className="panel-title"><div><span>本次选择透露的线索</span><small>每条线索都由你确认，也可以返回重选</small></div><b>v0</b></div>
               <div className="signal-list">
                 {resultSignals.map((signal, index) => (
                   <div className={`signal-row ${signalReviews[index] === "rejected" ? "is-rejected" : ""}`} key={`${signal.text}-${index}`}>
@@ -500,11 +500,11 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-              <div className="evidence-note"><b>还不能下结论</b><p>小游戏只能看见你的选择方式。学校、专业、经历和现实约束仍需要由你补充并确认。</p></div>
+              <div className="evidence-note"><b>信息还不够完整</b><p>小游戏记录了你的选择方式。学校、专业、经历和现实约束还需要由你补充并确认。</p></div>
             </article>
           </div>
           <div className="result-actions"><button className="ghost-button" onClick={restartPurpose}>重新选择人生课题</button><button className="primary-button" onClick={() => setStage("profile")}>补充事实，打开三种未来 <span>→</span></button></div>
-          <p className="disclaimer">探索画像只服务本次体验，不自动进入长期成长档案。</p>
+          <p className="disclaimer">探索画像仅用于本次体验；长期成长档案需要你另行确认。</p>
         </section>
       )}
 
@@ -520,17 +520,17 @@ export default function Home() {
               <div className="form-row"><label>专业<input defaultValue="计算机科学与技术" /></label><label>成绩位置<select defaultValue="专业中游"><option>专业前 20%</option><option>专业中游</option><option>专业后 30%</option></select></label></div>
               <label>已有经历<textarea defaultValue="完成过校园二手平台课程项目；暂无实习、竞赛和职业证书。" /></label>
               <label>现实约束<textarea defaultValue="希望留在省会或家乡附近；家庭更倾向稳定就业；每周可用于探索约 6 小时。" /></label>
-              <label className="upload-box">可选：上传简历（Demo 不会实际上传）<input type="file" accept=".pdf,.doc,.docx" onChange={(event) => setResumeName(event.target.files?.[0]?.name ?? "")} /><span>{resumeName || "选择 PDF / Word 文件"}</span><small>仅用于演示授权与信息补充，不读取文件内容</small></label>
+              <label className="upload-box">可选：上传简历（Demo 仅展示选择流程）<input type="file" accept=".pdf,.doc,.docx" onChange={(event) => setResumeName(event.target.files?.[0]?.name ?? "")} /><span>{resumeName || "选择 PDF / Word 文件"}</span><small>本次体验不会读取文件内容</small></label>
               <label className="consent-check"><input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} /><span>我确认将以上信息用于本次路径推演；我可以随时修改或删除。</span></label>
               <button className="primary-button full" type="submit" disabled={!consent}>生成我的平行人生入口 <span>→</span></button>
             </form>
             <aside className="profile-preview">
-              <span className="section-kicker light">准备生成</span><h3>初始画像快照 v1</h3><p>固化的是此刻的事实和选择依据，不是把你定型。</p>
+              <span className="section-kicker light">准备生成</span><h3>初始画像快照 v1</h3><p>这份快照记录此刻的事实和选择依据，后续经历会形成新版本。</p>
               <div className="preview-evidence"><span>目的锚点</span><b>{purpose.title}</b><small>来源：用户主动选择，可返回修改</small></div>
               <div className="preview-evidence"><span>已确认</span><b>稳定与地域偏好较高</b><small>来源：情境选择 + 现实约束</small></div>
               <div className="preview-evidence"><span>事实</span><b>计算机专业，有课程项目</b><small>来源：用户填写</small></div>
               <div className="preview-evidence"><span>待验证</span><b>能否接受体制内真实工作内容</b><small>来源：当前仍缺少生活体验</small></div>
-              <footer>下一步只推荐“值得体验”的未来，不推荐唯一答案。</footer>
+              <footer>下一步会给出值得体验的方向，并附上推荐依据和待补信息。</footer>
             </aside>
           </div>
         </section>
@@ -540,7 +540,7 @@ export default function Home() {
         <section className="content-page futures-page">
           <div className="page-heading split-heading">
             <div><span className="section-kicker">02 · 三种平行人生</span><h2>系统建议先验证“体制内人生”</h2></div>
-            <p>目的锚点、情境选择和林小北的现实资料共同形成推荐。它不是适合度排名，更不是成功率。</p>
+            <p>目的锚点、情境选择和林小北的现实资料共同形成推荐。页面展示体验顺序，并保留依据和信息缺口。</p>
           </div>
           <article className="priority-rationale">
             <span>为什么先看这条路</span>
@@ -573,7 +573,7 @@ export default function Home() {
 
       {stage === "simulation" && (
         <section className="content-page simulation-page">
-          <div className="simulation-heading"><div><span className="section-kicker">03 · 体制内平行人生</span><h2>你选择的不是一场考试，<br />而是一种具体生活。</h2></div><div className="simulation-counter"><strong>0{lifeIndex + 1}</strong><span>/ 0{lifeScenes.length}</span></div></div>
+          <div className="simulation-heading"><div><span className="section-kicker">03 · 体制内平行人生</span><h2>一场考试背后，<br />是一种具体生活。</h2></div><div className="simulation-counter"><strong>0{lifeIndex + 1}</strong><span>/ 0{lifeScenes.length}</span></div></div>
           <div className="simulation-layout">
             <article className="story-phone">
               <div className="phone-status"><span>平行人生</span><b>{lifeScenes[lifeIndex].time}</b></div>
@@ -586,14 +586,14 @@ export default function Home() {
               <button className="primary-button full" onClick={nextLifeScene} disabled={selectedLifeAnswer === null}>{lifeIndex === lifeScenes.length - 1 ? "看看体验改变了什么" : "进入下一幕"} <span>→</span></button>
             </article>
             <aside className="life-dashboard">
-              <span className="section-kicker light">LIFE SIGNALS</span><h3>这不是适合度</h3><p>这里只记录你在模拟场景中的选择变化，不预测真实考试和就业结果。</p>
+              <span className="section-kicker light">LIFE SIGNALS</span><h3>场景反应记录</h3><p>这些数值记录你在模拟场景中的选择变化，用于补充生活偏好与岗位认知。</p>
               {([
                 ["公共服务意愿", lifeStats.service],
                 ["规则任务适应", lifeStats.structure],
                 ["生活边界需求", lifeStats.boundary],
                 ["岗位现实认知", lifeStats.reality],
               ] as [string, number][]).map(([label, value]) => <div className="life-stat" key={label}><div><span>{label}</span><b>{value}</b></div><i><em style={{ width: `${value}%` }} /></i></div>)}
-              <div className="dashboard-note"><b>体验正在补充什么？</b><p>“我喜欢稳定”无法说明是否喜欢一份工作。真实场景帮助你看见自己能接受什么、不能接受什么。</p></div>
+              <div className="dashboard-note"><b>体验正在补充什么？</b><p>单靠“我喜欢稳定”还不足以判断工作感受。真实场景会呈现你愿意接受的部分，以及需要继续了解的部分。</p></div>
             </aside>
           </div>
         </section>
@@ -609,20 +609,20 @@ export default function Home() {
             <div className="evidence-bridge"><span>+{lifeEvidence.length}</span><b>条场景证据</b><i>→</i></div>
             <article className="snapshot-card after"><span>体验后 · v2 候选</span><h3>公考仍值得探索，但理由更完整</h3><ul>{lifeEvidence.slice(-3).map((item) => <li key={item}>{item}</li>)}</ul><footer>状态：等待用户确认</footer></article>
           </div>
-          <article className="recalibration-reason"><div><span>系统解释</span><h3>不是因为你“喜欢稳定”，就判断你适合考公。</h3></div><p>你对地域、规则型任务和公共服务场景表现出一定接受度，同时也注意到了成长速度、临时任务和岗位差异。现在最缺的不是另一份测评，而是一次真实考试与岗位体验。</p></article>
+          <article className="recalibration-reason"><div><span>系统解释</span><h3>“喜欢稳定”只说明了你对生活节奏的期待。</h3></div><p>你对地域、规则型任务和公共服务场景表现出一定接受度，也注意到了成长速度、临时任务和岗位差异。接下来最值得补充的是一次真实考试与岗位体验。</p></article>
           <div className="reaction-panel"><span>体验完这段生活，你现在更接近哪种感受？</span><div>{["这值得我继续了解", "可以接受，但先看具体岗位", "稳定吸引我，工作内容仍不确定", "和想象不同，保留其他人生"].map((item) => <button className={reaction === item ? "is-active" : ""} onClick={() => setReaction(item)} key={item}>{reaction === item ? "✓ " : ""}{item}</button>)}</div></div>
-          <div className="implementation-question"><div><span>体验之后，你终于可以问</span><h3>“如果我想走到这种生活，下一步该怎么实现？”</h3><p>系统不会直接让你报名，而是先把这个问题变成四项低成本验证。</p></div><button className="primary-button" disabled={!reaction} onClick={() => setStage("plan")}>告诉我下一步怎么走 <span>→</span></button></div>
+          <div className="implementation-question"><div><span>体验之后，你终于可以问</span><h3>“如果我想走到这种生活，下一步该怎么实现？”</h3><p>系统会先给你四项低成本验证，帮助你确认岗位与备考体验。</p></div><button className="primary-button" disabled={!reaction} onClick={() => setStage("plan")}>告诉我下一步怎么走 <span>→</span></button></div>
         </section>
       )}
 
       {stage === "plan" && (
         <section className="content-page plan-page">
           <div className="page-heading split-heading">
-            <div><span className="section-kicker">05 · 7 天考公体验计划</span><h2>模拟人生可以重开，真实选择需要证据</h2></div><p>七天后不要求你决定考公，只要求你更清楚：岗位、考试和这种生活，是否值得继续投入。</p>
+            <div><span className="section-kicker">05 · 7 天考公体验计划</span><h2>模拟人生可以重开，真实选择需要证据</h2></div><p>七天的目标很简单：看清岗位、考试和这种生活是否值得继续投入。</p>
           </div>
           <div className="plan-overview">
             <article className="progress-card"><span>体验完成度</span><strong>{planProgress}%</strong><div><i style={{ width: `${planProgress}%` }} /></div><p>{completedTasks.length === planTasks.length ? "四项证据已集齐，可以进入正式规划。" : `还差 ${planTasks.length - completedTasks.length} 项真实证据`}</p></article>
-            <article className="plan-thesis"><span>本周验证假设</span><h3>我不仅向往“上岸”，也能接受公考的准备方式与具体岗位生活。</h3><p>来源：初始画像 v1 + 体制内人生体验反馈</p></article>
+            <article className="plan-thesis"><span>本周验证假设</span><h3>我向往“上岸”后的生活，也愿意体验公考的准备方式与具体岗位。</h3><p>来源：初始画像 v1 + 体制内人生体验反馈</p></article>
           </div>
           <div className="seven-day-list">
             {planTasks.map((task, index) => {
@@ -630,7 +630,7 @@ export default function Home() {
               return <article className={done ? "is-done" : ""} key={task.day}><button onClick={() => toggleTask(index)} aria-label={`${done ? "取消完成" : "标记完成"}：${task.title}`}>{done ? "✓" : ""}</button><div className="task-day">{task.day}</div><div><h3>{task.title}</h3><p><b>完成标准：</b>{task.criteria}</p></div><span>{task.resource}</span></article>;
             })}
           </div>
-          <div className="final-banner"><div><span>下一步不是报名</span><h3>先完成一次低成本验证，再决定是否进入正式考公规划。</h3></div><button className="ghost-button" onClick={resetDemo}>重新体验其他选择</button></div>
+          <div className="final-banner"><div><span>先做验证</span><h3>完成这次低成本体验后，再决定是否进入正式考公规划。</h3></div><button className="ghost-button" onClick={resetDemo}>重新体验其他选择</button></div>
         </section>
       )}
     </main>
