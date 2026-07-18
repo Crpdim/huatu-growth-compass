@@ -66,7 +66,7 @@ const interpretationSteps = [
 ];
 
 const lifePurposes: { id: PurposeId; icon: string; title: string; description: string; signal: string; tag: string }[] = [
-  { id: "steady", icon: "稳", title: "找到一种可预期的生活", description: "希望工作、城市和生活节奏更确定，也能照顾家人。", signal: "你当前最想先解决生活稳定性与地域确定性", tag: "稳定让我走得更远" },
+  { id: "steady", icon: "稳", title: "找到一种可预期的生活", description: "希望工作、城市和生活节奏更确定，也能照顾家人。", signal: "比起一时的高回报，你更在意一种能够安排生活的确定感", tag: "稳定让我走得更远" },
   { id: "independent", icon: "立", title: "尽快实现经济独立", description: "想减少家庭压力，拥有不依赖别人做选择的底气。", signal: "你当前把经济独立和自主选择权放在优先位置", tag: "先获得选择权" },
   { id: "growth", icon: "升", title: "获得更快的成长上升", description: "想继续往上走，让能力、收入和平台都持续成长。", signal: "你当前更关心成长速度与长期上升空间", tag: "成长要看得见" },
   { id: "self", icon: "我", title: "做一次真正属于自己的选择", description: "想听清自己的声音，减少同学、家人和热门路线的影响。", signal: "你当前最想确认哪种选择真正属于自己", tag: "人生自己作答" },
@@ -78,7 +78,7 @@ const questions: { eyebrow: string; title: string; options: QuizOption[] }[] = [
     eyebrow: "毕业路口",
     title: "室友开始准备考研、公考和实习，而你还没想好。你会先做什么？",
     options: [
-      { label: "先了解家乡和省会有哪些稳定岗位", signal: "地域与稳定是你会优先确认的现实条件", scores: { public: 3, job: 0, postgrad: 1 } },
+      { label: "先了解家乡和省会有哪些稳定岗位", signal: "你会先确认城市和生活方式，再决定为哪条路投入", scores: { public: 3, job: 0, postgrad: 1 } },
       { label: "先投几份实习，用真实工作找方向", signal: "你倾向用企业实践快速验证选择", scores: { public: 0, job: 3, postgrad: 0 } },
       { label: "先看看继续读研能打开哪些可能", signal: "你愿意通过继续学习延长能力积累", scores: { public: 0, job: 0, postgrad: 3 } },
       { label: "把三条路都收藏起来，晚点再决定", signal: "你希望保留可能，但容易停在信息搜集阶段", scores: { public: 1, job: 1, postgrad: 1 } },
@@ -88,7 +88,7 @@ const questions: { eyebrow: string; title: string; options: QuizOption[] }[] = [
     eyebrow: "理想生活",
     title: "如果工作五年后回头看，你最希望自己获得什么？",
     options: [
-      { label: "生活可预期，也能照顾家人", signal: "你重视确定性、地域与生活边界", scores: { public: 3, job: 0, postgrad: 1 } },
+      { label: "生活可预期，也能照顾家人", signal: "你想要的不只是一份稳定工作，也希望下班后的时间仍然属于自己", scores: { public: 3, job: 0, postgrad: 1 } },
       { label: "收入和能力都快速增长", signal: "你更看重成长速度和成果回报", scores: { public: 0, job: 3, postgrad: 0 } },
       { label: "在专业领域形成真正的积累", signal: "你在意长期专业深度", scores: { public: 0, job: 1, postgrad: 3 } },
       { label: "先有选择权，不被任何路线困住", signal: "你看重自主性，需要保留转轨空间", scores: { public: 1, job: 2, postgrad: 1 } },
@@ -98,7 +98,7 @@ const questions: { eyebrow: string; title: string; options: QuizOption[] }[] = [
     eyebrow: "任务偏好",
     title: "周末可以体验一种陌生任务，你更愿意先试哪一种？",
     options: [
-      { label: "从一堆材料里找规律，给出有依据的结论", signal: "你愿意尝试规则明确的信息分析任务", scores: { public: 3, job: 1, postgrad: 1 } },
+      { label: "从一堆材料里找规律，给出有依据的结论", signal: "比起模糊的承诺，你更相信规则清楚、努力能被看见的竞争", scores: { public: 3, job: 1, postgrad: 1 } },
       { label: "做一个能运行的小产品或功能", signal: "你偏好做出可见、可运行的成果", scores: { public: 0, job: 3, postgrad: 1 } },
       { label: "深入研究一个问题并写成报告", signal: "你愿意为一个问题进行持续研究", scores: { public: 1, job: 0, postgrad: 3 } },
       { label: "先听三个过来人讲真实经历", signal: "你习惯借助案例降低试错成本", scores: { public: 2, job: 1, postgrad: 1 } },
@@ -1024,7 +1024,7 @@ export default function Home() {
             <article className="share-card">
               <div className="share-top"><span>AI 初步印象</span><b>临时画像 · V0</b></div>
               <div className="type-symbol"><span>临时成长标签</span><strong>↗</strong></div>
-              <h3>现实探索型</h3>
+              <h3>「人间清醒的务实派」</h3>
               <p>你倾向先了解现实条件，再通过一次小体验判断方向。你当前最想解决的是“{purpose.title}”。</p>
               <div className="type-explanation"><span>这个标签有什么用？</span><p>它帮助系统理解你的选择方式，并决定接下来先补充哪些信息。你可以随时修正。</p></div>
               <div className="share-tags"><span># {purpose.tag}</span><span># 选择要有依据</span><span># 先体验再押注</span></div>
@@ -1136,7 +1136,7 @@ export default function Home() {
           <div className="positioning-layout">
             <article className="coordinate-card">
               <div className="coordinate-heading"><div><span>AI 初评 · 0–5 分</span><h3>我的能力雷达</h3></div></div>
-              <div className="target-reference target-public"><div><span>初步结论</span><b>考公方向好像更匹配</b></div><p>性格、压力应对和沟通协作更突出。</p></div>
+              <div className="target-reference target-public"><div><span>初步结论</span><b>考公这条路，可能比你想象中更适合你</b></div><p>你的选择里反复出现了稳定、规则感和现实判断。</p></div>
               <div className="coordinate-content">
                 <div className="radar-chart" role="img" aria-label="六维能力雷达：性格4.5，专业能力2.4，兴趣匹配度3.4，学习与知识3.1，压力应对4.8，沟通协作3.9">
                   <div className="radar-ring radar-ring-outer" /><div className="radar-ring radar-ring-middle" /><div className="radar-ring radar-ring-inner" />

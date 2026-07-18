@@ -11,7 +11,7 @@ test("contains the complete Growth Compass demo journey", async () => {
   for (const content of [
     "你<span>迷茫</span>吗",
     "未来生活",
-    "现实探索型",
+    "人间清醒的务实派",
     "这是 AI 对你的第一印象",
     "正在读懂你的选择方式",
     "寻找重复偏好",
@@ -26,7 +26,7 @@ test("contains the complete Growth Compass demo journey", async () => {
     "初评分数会随体验和真实反馈更新",
     "性格4.5",
     "压力应对",
-    "考公方向好像更匹配",
+    "考公这条路，可能比你想象中更适合你",
     "看看相似的人怎么走",
     "同路人的今天",
     "从山西二本到北京朝阳区",
