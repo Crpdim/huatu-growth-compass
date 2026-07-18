@@ -34,13 +34,13 @@ const journeySteps = [
   { label: "行动验证", short: "真实体验" },
 ];
 
-const growthDimensions = [
-  { label: "院校与学业", value: 58, evidence: "普通本科 · 专业成绩中游", color: "#6757e5" },
-  { label: "经历积累", value: 36, evidence: "1 个课程项目 · 暂无实习", color: "#8a72ed" },
-  { label: "方向聚焦", value: 42, evidence: "三条路径仍在比较", color: "#ff8a55" },
-  { label: "行动准备", value: 54, evidence: "每周可投入约 6 小时", color: "#d9b63e" },
-  { label: "现实认知", value: 68, evidence: "地域与家庭约束清晰", color: "#2d9f7f" },
-  { label: "选择自主", value: 62, evidence: "愿意比较并保留个人判断", color: "#4778df" },
+const abilityDimensions = [
+  { label: "性格适配度", value: 3.2, tag: "稳健有序", summary: "偏好规则清晰、节奏可控的环境，具体岗位适配度会在目标确认后重算。", evidence: "情境选择：稳定、规则与生活边界", confidence: "low", referenceOnly: true, color: "#6757e5" },
+  { label: "专业能力", value: 2.4, tag: "基础起步", summary: "已完成一个课程项目，证书、实习、竞赛和代表作品仍有较大积累空间。", evidence: "资料填写：1 个课程项目，暂无实习", confidence: "medium", referenceOnly: true, color: "#8a72ed" },
+  { label: "兴趣匹配度", value: 3.4, tag: "稳定导向", summary: "稳定、自主和地域是当前较明显的偏好，职业兴趣还需要真实任务验证。", evidence: "人生课题 + 情境偏好选择", confidence: "low", referenceOnly: true, color: "#ff8a55" },
+  { label: "学习与知识", value: 3.1, tag: "基础达标", summary: "本科专业基础处于中游，具备继续学习的起点，持续学习成果仍待补充。", evidence: "资料填写：本科大二、专业成绩中游", confidence: "medium", referenceOnly: false, color: "#d9b63e" },
+  { label: "压力应对", value: 2.8, tag: "恢复待验", summary: "计划受阻时有调整意识，持续高压下的稳定表现目前缺少行为证据。", evidence: "计划中断与现实取舍情境", confidence: "low", referenceOnly: false, color: "#2d9f7f" },
+  { label: "沟通协作", value: 3.0, tag: "协作达标", summary: "具备课程项目协作基础，表达、冲突处理和协调能力仍缺外部反馈。", evidence: "课程项目经历 + 情境选择", confidence: "low", referenceOnly: false, color: "#4778df" },
 ];
 
 const lifePurposes: { id: PurposeId; icon: string; title: string; description: string; signal: string; tag: string }[] = [
@@ -283,9 +283,9 @@ export default function Home() {
   );
 
   const purpose = lifePurposes.find((item) => item.id === selectedPurpose) ?? lifePurposes[4];
-  const radarPoints = growthDimensions.map((item, index) => {
-    const angle = -Math.PI / 2 + index * (Math.PI * 2 / growthDimensions.length);
-    const radius = item.value * 0.42;
+  const radarPoints = abilityDimensions.map((item, index) => {
+    const angle = -Math.PI / 2 + index * (Math.PI * 2 / abilityDimensions.length);
+    const radius = (item.value / 5) * 42;
     return `${50 + Math.cos(angle) * radius}% ${50 + Math.sin(angle) * radius}%`;
   }).join(", ");
   const resultSignals = useMemo(() => [
@@ -573,7 +573,7 @@ export default function Home() {
               <label>现实约束<textarea defaultValue="希望留在省会或家乡附近；家庭更倾向稳定就业；每周可用于探索约 6 小时。" /></label>
               <label className="upload-box">可选：上传简历（Demo 仅展示选择流程）<input type="file" accept=".pdf,.doc,.docx" onChange={(event) => setResumeName(event.target.files?.[0]?.name ?? "")} /><span>{resumeName || "选择 PDF / Word 文件"}</span><small>本次体验不会读取文件内容</small></label>
               <label className="consent-check"><input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} /><span>我确认将以上信息用于本次路径推演；我可以随时修改或删除。</span></label>
-              <button className="primary-button full" type="submit" disabled={!consent}>生成我的平行人生入口 <span>→</span></button>
+              <button className="primary-button full" type="submit" disabled={!consent}>生成我的职途初鉴 <span>→</span></button>
             </form>
             <aside className="profile-preview">
               <span className="section-kicker light">准备生成</span><h3>初始画像快照 v1</h3><p>这份快照记录此刻的事实和选择依据，后续经历会形成新版本。</p>
@@ -581,7 +581,7 @@ export default function Home() {
               <div className="preview-evidence"><span>已确认</span><b>稳定与地域偏好较高</b><small>来源：情境选择 + 现实约束</small></div>
               <div className="preview-evidence"><span>事实</span><b>计算机专业，有课程项目</b><small>来源：用户填写</small></div>
               <div className="preview-evidence"><span>待验证</span><b>能否接受体制内真实工作内容</b><small>来源：当前仍缺少生活体验</small></div>
-              <footer>下一步会给出值得体验的方向，并附上推荐依据和待补信息。</footer>
+              <footer>下一步将生成六维能力雷达、维度短评和个人定位。</footer>
             </aside>
           </div>
         </section>
@@ -590,45 +590,48 @@ export default function Home() {
       {stage === "positioning" && (
         <section className="content-page positioning-page">
           <div className="page-heading split-heading">
-            <div><span className="section-kicker">01 · AI 成长坐标</span><h2>这是你现在的位置</h2></div>
-            <p>AI 将情境回答、学校专业、已有经历和现实约束放在同一张图里。每项分数都能找到对应依据。</p>
+            <div><span className="section-kicker">01 · 职途初鉴</span><h2>先看清现在的自己</h2></div>
+            <p>AI 将情境回答和已确认资料整理为六维初评。每项都有一句结论、证据来源和当前置信度。</p>
           </div>
           <div className="positioning-layout">
             <article className="coordinate-card">
-              <div className="coordinate-heading"><div><span>成长准备度</span><h3>六维坐标图</h3></div><b>PROFILE v1</b></div>
+              <div className="coordinate-heading"><div><span>功能 1 · AI 初评</span><h3>我的能力雷达</h3></div><div className="coordinate-badges"><b>0–5 分</b><b>六维等权</b></div></div>
+              <div className="target-reference"><div><span>当前目标</span><b>尚未确定</b></div><p>性格适配度、专业能力和兴趣匹配度暂按通用职业环境评分；进入具体路径后会结合岗位要求重新计算。</p></div>
               <div className="coordinate-content">
-                <div className="radar-chart" role="img" aria-label="六维成长准备度图：院校与学业58，经历积累36，方向聚焦42，行动准备54，现实认知68，选择自主62">
+                <div className="radar-chart" role="img" aria-label="六维能力雷达：性格适配度3.2，专业能力2.4，兴趣匹配度3.4，学习与知识3.1，压力应对2.8，沟通协作3.0">
                   <div className="radar-ring radar-ring-outer" /><div className="radar-ring radar-ring-middle" /><div className="radar-ring radar-ring-inner" />
-                  {growthDimensions.map((item, index) => <i className={`radar-axis axis-${index}`} key={item.label} />)}
+                  {abilityDimensions.map((item, index) => <i className={`radar-axis axis-${index}`} key={item.label} />)}
                   <div className="radar-shape" style={{ clipPath: `polygon(${radarPoints})` }} />
-                  {growthDimensions.map((item, index) => {
-                    const angle = -Math.PI / 2 + index * (Math.PI * 2 / growthDimensions.length);
-                    const radius = item.value * 0.42;
+                  {abilityDimensions.map((item, index) => {
+                    const angle = -Math.PI / 2 + index * (Math.PI * 2 / abilityDimensions.length);
+                    const radius = (item.value / 5) * 42;
                     return <em className="radar-dot" style={{ left: `${50 + Math.cos(angle) * radius}%`, top: `${50 + Math.sin(angle) * radius}%`, background: item.color }} key={item.label} />;
                   })}
-                  {growthDimensions.map((item, index) => <span className={`radar-label radar-label-${index}`} key={item.label}>{item.label}</span>)}
-                  <strong>54</strong><small>综合准备度</small>
+                  {abilityDimensions.map((item, index) => <span className={`radar-label radar-label-${index}`} key={item.label}>{item.label}</span>)}
+                  <strong>3.0</strong><small>六维均分 / 5</small>
                 </div>
                 <div className="dimension-list">
-                  {growthDimensions.map((item) => (
+                  {abilityDimensions.map((item) => (
                     <div className="dimension-row" key={item.label}>
-                      <div><span>{item.label}</span><b>{item.value}</b></div>
-                      <i><em style={{ width: `${item.value}%`, background: item.color }} /></i>
-                      <small>{item.evidence}</small>
+                      <div className="dimension-row-head"><div><span>{item.label}</span>{item.referenceOnly && <small>通用参考</small>}</div><div><em>{item.tag}</em><b>{item.value.toFixed(1)}</b><small>/ 5</small></div></div>
+                      <p>{item.summary}</p>
+                      <i><em style={{ width: `${(item.value / 5) * 100}%`, background: item.color }} /></i>
+                      <div className="dimension-meta"><span>依据：{item.evidence}</span><b>置信度 {item.confidence}</b></div>
                     </div>
                   ))}
                 </div>
               </div>
-              <footer>分值反映当前准备度与证据充足度。完成课程、项目和验证任务后，坐标会随新证据更新。</footer>
+              <footer className="score-footer"><div><span><b>1</b>不足</span><span><b>2</b>待改进</span><span><b>3</b>达标</span><span><b>4</b>优秀</span><span><b>5</b>卓越</span></div><p>当前仅使用情境选择和预置资料。大五、霍兰德、能力测评及作品反馈尚未采集，后续获得新证据后会生成新版本。</p></footer>
             </article>
             <aside className="position-summary">
               <span className="section-kicker light">AI 初步定位</span>
               <div className="position-symbol">↗</div>
-              <h3>现实导向的<br />早期探索者</h3>
-              <p>你已经开始考虑地域、家庭和时间等现实条件，也有基本的学业与项目基础。当前最需要补充的是方向聚焦与真实经历。</p>
-              <div className="position-finding positive"><span>当前优势</span><b>现实约束清楚，愿意主动比较</b><small>依据：人生课题、情境选择、资料填写</small></div>
-              <div className="position-finding"><span>关键缺口</span><b>职业体验少，三条路径都停留在想象</b><small>建议：先进入一条平行人生低成本试走</small></div>
-              <div className="position-thesis"><span>个人定位</span><p>适合从短期体验开始，用真实反馈逐步收窄方向。</p></div>
+              <h3>现实导向的<br />探索型学习者</h3>
+              <p>你会认真考虑稳定、地域和家庭等现实条件，也愿意通过学习继续积累。职业目标仍在形成，当前画像适合用来选择探索顺序。</p>
+              <div className="position-finding positive"><span>相对优势</span><b>兴趣线索较清楚，学习基础达到当前阶段要求</b><small>较高维度：兴趣匹配度 3.4 · 性格适配度 3.2</small></div>
+              <div className="position-finding"><span>优先补强</span><b>专业成果较少，压力与协作表现缺少真实反馈</b><small>较低维度：专业能力 2.4 · 压力应对 2.8</small></div>
+              <div className="position-thesis"><span>个人定位</span><p>先用短期职业体验验证兴趣，再用项目成果和外部反馈提高画像可信度。</p></div>
+              <div className="position-boundary"><b>评分边界</b><p>“压力应对”只记录情境行为，不推断心理状态；当前未接入任何外部平台数据。</p></div>
               <button className="primary-button full" onClick={() => setStage("futures")}>带着这个定位看三种人生 <span>→</span></button>
             </aside>
           </div>
