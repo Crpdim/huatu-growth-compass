@@ -1136,7 +1136,7 @@ export default function Home() {
           <div className="positioning-layout">
             <article className="coordinate-card">
               <div className="coordinate-heading"><div><span>AI 初评 · 0–5 分</span><h3>我的能力雷达</h3></div></div>
-              <div className="target-reference target-public"><div><span>初步结论</span><b>考公这条路，可能比你想象中更适合你</b></div><p>你的选择里反复出现了稳定、规则感和现实判断。</p></div>
+              <div className="target-reference target-public"><div><span>初步结论</span><b>考公方向好像更匹配</b></div><p>你的选择里反复出现了稳定、规则感和现实判断。</p></div>
               <div className="coordinate-content">
                 <div className="radar-chart" role="img" aria-label="六维能力雷达：性格4.5，专业能力2.4，兴趣匹配度3.4，学习与知识3.1，压力应对4.8，沟通协作3.9">
                   <div className="radar-ring radar-ring-outer" /><div className="radar-ring radar-ring-middle" /><div className="radar-ring radar-ring-inner" />
