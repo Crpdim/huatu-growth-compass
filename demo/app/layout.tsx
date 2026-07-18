@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   metadataBase,
   title: "华图成长罗盘｜AI 大学生成长实验系统",
   description:
-    "从“你迷茫吗？”进入三种平行人生，先体验一种未来，再用真实行动决定是否投入。",
+    "从动态画像和多路径体验出发，用 AI 伴学、真实任务与周期复盘持续校准大学生成长计划。",
   icons: {
     icon: `${basePath}/logo.png`,
     shortcut: `${basePath}/logo.png`,
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "你迷茫吗？｜华图成长罗盘",
-    description: "先体验一种未来，再决定是否真正投入。",
+    description: "先体验一种未来，再用真实行动和持续反馈校准成长计划。",
     type: "website",
     images: [{
       url: `${basePath}/og.png`,
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "你迷茫吗？｜华图成长罗盘",
-    description: "先体验一种未来，再决定是否真正投入。",
+    description: "先体验一种未来，再用真实行动和持续反馈校准成长计划。",
     images: [`${basePath}/og.png`],
   },
 };

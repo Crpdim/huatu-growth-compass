@@ -82,7 +82,9 @@ AI 接口优先返回结构化 JSON，至少包含：
 
 - 产品与比赛文档位于仓库根目录和 `docs/`；
 - 前端应用位于 `demo/`，所有 npm 命令默认在该目录执行；
-- 当前应用采用单页状态切换，主要交互集中在 `demo/app/page.tsx`；
+- 当前应用采用单页状态切换，`demo/app/page.tsx` 只负责状态、动画和页面编排；
+- 独立功能页位于 `demo/app/components/`，按探索、画像、方向、任务管理、AI 伴学和复盘结算划分；
+- 静态题库、案例、评分维度和任务模板位于 `demo/app/demo-data.ts`，共享流程类型位于 `demo/app/demo-types.ts`；
 - 全局样式位于 `demo/app/globals.css`；
 - 静态图片位于 `demo/public/`；
 - 当前没有业务后端、真实 AI 接口、登录和持久化数据库；
