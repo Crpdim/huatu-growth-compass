@@ -218,7 +218,7 @@ test("opens with a campaign homepage and keeps the life game as the experience e
   const promo = await readFile(promoHomePageUrl, "utf8");
   const globalStyles = await readFile(globalStylesUrl, "utf8");
 
-  assert.match(promo, /先看见一种未来/);
+  assert.match(promo, /职图有声，懂你所需，助你所行/);
   assert.match(promo, /进入模拟人生/);
   assert.match(promo, /product-demo\.mp4/);
   assert.match(promo, /experience=life-game/);

@@ -23,7 +23,7 @@ export function PromoHomePage({ basePath, onExperience }: PromoHomePageProps) {
 
       <section className="promo-hero">
         <div className="promo-copy">
-          <h1>先看见一种未来<br />再走出自己的路</h1>
+          <h1>职图有声，懂你所需，助你所行</h1>
         </div>
 
         <div className="promo-video-stage">
