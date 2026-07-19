@@ -251,6 +251,7 @@ test("wires every life-game exit to the intended Growth Compass stage", async ()
   assert.match(gameHtml, /id="open-growth-planning"/);
   assert.match(gameHtml, /id="complete-to-profile"/);
   assert.match(gameHtml, /id="dream-roadmap"/);
+  assert.match(gameHtml, /script\.js\?v=20260719-d3967e0/);
   assert.match(gameScript, /growthPlanningLink\.addEventListener\("click"/);
   assert.match(gameScript, /notifyGrowthCompass\("huatu:explore-planning"\)/);
   assert.match(gameScript, /completeToProfileButton\.addEventListener\("click"/);
@@ -262,6 +263,7 @@ test("wires every life-game exit to the intended Growth Compass stage", async ()
   assert.match(bridge, /event\.source !== frameRef\.current\?\.contentWindow/);
   assert.match(bridge, /event\.data\?\.type === "huatu:explore-planning"/);
   assert.match(bridge, /event\.data\?\.type === "huatu:life-game-complete"/);
+  assert.match(bridge, /index\.html\?v=\$\{lifeGameAssetVersion\}/);
   assert.match(appPage, /onExplorePlanning=\{\(\) => setStage\("landing"\)\}/);
   assert.match(appPage, /setSelectedPurpose\("steady"\)/);
   assert.match(appPage, /setStage\("profile"\)/);

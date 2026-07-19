@@ -8,6 +8,8 @@ type LifeGamePageProps = {
   onCompleteProfile: () => void;
 };
 
+const lifeGameAssetVersion = "20260719-d3967e0";
+
 export function LifeGamePage({ basePath, onExplorePlanning, onCompleteProfile }: LifeGamePageProps) {
   const frameRef = useRef<HTMLIFrameElement>(null);
 
@@ -33,7 +35,7 @@ export function LifeGamePage({ basePath, onExplorePlanning, onCompleteProfile }:
       <iframe
         ref={frameRef}
         className="life-game-frame"
-        src={`${basePath}/life-game/index.html`}
+        src={`${basePath}/life-game/index.html?v=${lifeGameAssetVersion}`}
         title="人生模拟器"
       />
     </main>
