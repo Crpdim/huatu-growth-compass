@@ -22,6 +22,7 @@ import { ProgressPage } from "./components/progress-page";
 import { CompanionPage } from "./components/companion-page";
 import { ReviewPages } from "./components/review-pages";
 import { LifeGamePage } from "./components/life-game-page";
+import { PromoHomePage } from "./components/promo-home-page";
 import * as demoData from "./demo-data";
 
 const {
@@ -59,6 +60,7 @@ export default function Home() {
   const companionChatRef = useRef<HTMLDivElement>(null);
   const launchTimerRef = useRef<number | null>(null);
   const [stage, setStage] = useState<Stage>("lifeGame");
+  const [showPromoHome, setShowPromoHome] = useState(true);
   const [isLaunching, setIsLaunching] = useState(false);
   const [furthestRank, setFurthestRank] = useState(0);
   const [selectedPurpose, setSelectedPurpose] = useState<PurposeId | null>(null);
@@ -173,6 +175,16 @@ export default function Home() {
     const radius = (item.currentValue / 5) * 42;
     return `${50 + Math.cos(angle) * radius}% ${50 + Math.sin(angle) * radius}%`;
   }).join(", ");
+
+  useEffect(() => {
+    function syncPromoHomeWithUrl() {
+      setShowPromoHome(new URLSearchParams(window.location.search).get("experience") !== "life-game");
+    }
+
+    syncPromoHomeWithUrl();
+    window.addEventListener("popstate", syncPromoHomeWithUrl);
+    return () => window.removeEventListener("popstate", syncPromoHomeWithUrl);
+  }, []);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
@@ -622,6 +634,10 @@ export default function Home() {
     visual.style.setProperty("--tilt-x", "0deg");
     visual.style.setProperty("--tilt-y", "0deg");
     visual.style.setProperty("--needle-angle", "14deg");
+  }
+
+  if (showPromoHome) {
+    return <PromoHomePage basePath={basePath} onExperience={() => setShowPromoHome(false)} />;
   }
 
   if (stage === "lifeGame") {

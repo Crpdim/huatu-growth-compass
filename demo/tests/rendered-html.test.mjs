@@ -9,6 +9,7 @@ const profilePageUrl = new URL("../app/components/profile-pages.tsx", import.met
 const managementPageUrl = new URL("../app/components/management-action-pages.tsx", import.meta.url);
 const progressPageUrl = new URL("../app/components/progress-page.tsx", import.meta.url);
 const lifeGamePageUrl = new URL("../app/components/life-game-page.tsx", import.meta.url);
+const promoHomePageUrl = new URL("../app/components/promo-home-page.tsx", import.meta.url);
 const lifeGameHtmlUrl = new URL("../public/life-game/index.html", import.meta.url);
 const lifeGameScriptUrl = new URL("../public/life-game/script.js", import.meta.url);
 const globalStylesUrl = new URL("../app/globals.css", import.meta.url);
@@ -27,6 +28,7 @@ const featureUrls = [
   new URL("../app/components/companion-page.tsx", import.meta.url),
   new URL("../app/components/review-pages.tsx", import.meta.url),
   lifeGamePageUrl,
+  promoHomePageUrl,
   lifeGameHtmlUrl,
   lifeGameScriptUrl,
 ];
@@ -191,6 +193,9 @@ test("contains the complete Growth Compass demo journey", async () => {
   assert.match(page, /下一步：补充资料与授权/);
   assert.match(page, /只寻找重复出现的偏好/);
   assert.match(page, /useState<Stage>\("lifeGame"\)/);
+  assert.match(page, /showPromoHome/);
+  assert.match(page, /experience=life-game/);
+  assert.match(page, /<PromoHomePage/);
   assert.match(page, /onExplorePlanning=\{\(\) => setStage\("landing"\)\}/);
   assert.match(page, /setStage\("profile"\)/);
   assert.doesNotMatch(page, /阶段复盘|user_confirmation_required|needs_more_evidence|decision_status ·|information_gaps ·/);
@@ -207,6 +212,19 @@ test("contains the complete Growth Compass demo journey", async () => {
   assert.doesNotMatch(page, /资格审查通过率是多少|开始 10 分钟考公摸底/);
   assert.doesNotMatch(page, /你没有失败，只是第一步太大|下一阶段这样调整|开启下一阶段 · 开发中/);
   assert.doesNotMatch(page, /规划师|requires_human_review/);
+});
+
+test("opens with a campaign homepage and keeps the life game as the experience entry", async () => {
+  const promo = await readFile(promoHomePageUrl, "utf8");
+  const globalStyles = await readFile(globalStylesUrl, "utf8");
+
+  assert.match(promo, /先看见一种未来/);
+  assert.match(promo, /进入模拟人生/);
+  assert.match(promo, /product-demo\.mp4/);
+  assert.match(promo, /experience=life-game/);
+  assert.match(promo, /onExperience\(\)/);
+  assert.match(globalStyles, /\.promo-video-frame/);
+  assert.match(globalStyles, /prefers-reduced-motion/);
 });
 
 test("uses finished product metadata instead of starter preview metadata", async () => {
