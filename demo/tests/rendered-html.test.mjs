@@ -156,6 +156,7 @@ test("contains the complete Growth Compass demo journey", async () => {
     "没有人生目标？点击探索你的人生规划",
     "模范公务员达成",
     "补全任务画像 →",
+    "补充真实信息后，AI会分析你的能力矩阵，教你一步步实现人生目标",
     "huatu:explore-planning",
     "huatu:life-game-complete",
   ]) {
