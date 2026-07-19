@@ -74,33 +74,48 @@ test("contains the complete Growth Compass demo journey", async () => {
     "直接进入成长管理",
     "方向与本周计划",
     "华图课程答疑",
-    "阶段复盘",
+    "当前任务进展",
+    "我当前任务完成得怎么样",
+    "当前完成状态",
+    "本周回顾",
+    "帮我回顾一下这周",
     "提醒中心",
     "在当前会话处理",
     "在当前会话处理",
-    "连续两晚睡眠低于平时",
-    "选择你的主要方向",
-    "稳定发展，先了解考公",
-    "正在读取你的最新画像和路径资料",
-    "为我生成本周重点任务",
+    "状态分样例为 38",
+    "你问一个问题，我回答一个问题",
+    "我的能力怎样",
+    "正在查找已确认画像与授权资料",
+    "这是你当前的六维能力画像",
+    "家庭约束",
+    "行为日志",
+    "帮我安排一下任务看看我适不适合考公",
+    "先用 4 个小任务验证你是否适合考公",
+    "我确认了想去税务局",
+    "已把税务局作为本周重点岗位",
+    "需要赶紧报名了，国考报名窗口还有 7 天",
+    "我已经报了名",
+    "已记录报名完成，接下来准备笔试体验",
     "成长规划 Agent",
     "path_compare",
     "profile_radar",
     "task_list",
     "stress_probe",
-    "进展总览",
-    "整体进度（加权）",
+    "本周进展",
+    "完成了多少，一眼就能看懂",
+    "课程已经完成，配套练习仍缺少结果",
+    "任务分值",
     "已完成",
     "未完成",
-    "这是当前规划使用的六维画像",
     "消息和任务使用同一份画像",
     "任务太大，帮我拆小",
-    "这次卡在哪里",
-    "计划已调整",
     "本周加权进度",
-    "周复盘与计划校准",
-    "这一周，先看看走到了哪里",
-    "基于当前进度，开启下一阶段",
+    "这里只回答三件事",
+    "为什么方向线索是",
+    "匹配度变化",
+    "证据还不够",
+    "先完成两件小事，再决定下一阶段",
+    "生成下一阶段计划",
     "正在重新规划",
     "下一阶段已开启",
     "体验 20 分钟华图考公入门课",
@@ -111,9 +126,9 @@ test("contains the complete Growth Compass demo journey", async () => {
     "资料分析入门：快速定位材料数据",
     "加入本周计划",
     "本轮学习记录已更新",
-    "周期复盘与画像校准",
+    "复盘与画像更新",
     "阶段开始 v1 → 当前候选 v2",
-    "能力变化来自任务和成果证据",
+    "只有任务和成果会更新画像",
     "阶段结算",
     "考公认知与入门验证",
     "继续考公探索",
@@ -128,6 +143,8 @@ test("contains the complete Growth Compass demo journey", async () => {
   assert.match(page, /本次作为对照路径/);
   assert.match(page, /executionTasks\.reduce/);
   assert.match(page, /executionTaskDone/);
+  assert.match(page, /managementTaskCredits/);
+  assert.match(page, /sessionConversations/);
   assert.match(page, /不承诺考试或就业结果/);
   assert.match(page, /onLandingPointerMove=\{handleLandingPointerMove\}/);
   assert.match(page, /onPointerMove=\{onLandingPointerMove\}/);
@@ -146,6 +163,7 @@ test("contains the complete Growth Compass demo journey", async () => {
   assert.match(page, /aria-current=\{isCurrent \? "step"/);
   assert.match(page, /下一步：补充资料与授权/);
   assert.match(page, /只寻找重复出现的偏好/);
+  assert.doesNotMatch(page, /阶段复盘|user_confirmation_required|needs_more_evidence|decision_status ·|information_gaps ·/);
   assert.doesNotMatch(page, /体验我的考公人生|真实样本未来体验/);
   assert.doesNotMatch(page, /stage === "simulation"|stage === "recalibration"/);
   assert.doesNotMatch(page, /\{ label: "画像同步", short: "导入依据" \}|\{ label: "任务管理", short: "开始行动" \}|\{ label: "动态校准", short: "反馈更新" \}/);
@@ -169,6 +187,7 @@ test("uses finished product metadata instead of starter preview metadata", async
 });
 
 test("keeps growth management content inside switchable Agent sessions", async () => {
+  const appPage = await readFile(pageUrl, "utf8");
   const management = await readFile(
     new URL("../app/components/management-action-pages.tsx", import.meta.url),
     "utf8",
@@ -176,12 +195,22 @@ test("keeps growth management content inside switchable Agent sessions", async (
 
   assert.match(management, /activeSession/);
   assert.match(management, /agent-session-list/);
-  assert.match(management, /agent-full-profile-grid/);
-  assert.match(management, /agent-inline-progress/);
+  assert.match(management, /agent-profile-radar/);
+  assert.match(management, /planningStep === 7/);
+  assert.match(management, /planningIsBusy/);
+  assert.match(management, /agent-session-metrics/);
   assert.match(management, /resourceAdded/);
   assert.match(management, /agent-reminder-center/);
   assert.match(management, /reminderSession === activeSession/);
   assert.match(management, /bringReminderIntoConversation/);
+  assert.match(management, /agent-plain-summary/);
+  assert.match(management, /activeSession === "progress"/);
+  assert.match(management, /activeSession === "review"/);
+  assert.match(management, /sessionConversations/);
+  assert.match(management, /我当前任务完成得怎么样/);
+  assert.match(management, /帮我回顾一下这周/);
+  assert.doesNotMatch(appPage, /ManagementNavigation/);
+  assert.doesNotMatch(management, /agent-proactive-reminder/);
   assert.doesNotMatch(management, /周回顾与提醒/);
   assert.doesNotMatch(management, /后续解锁|查看完整画像依据|打开进展总览/);
 });

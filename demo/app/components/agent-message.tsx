@@ -12,7 +12,7 @@ export function AgentMessage({ type, label, title, tone = "default", children }:
   return <article className={`agent-card-message tone-${tone}`} data-message-type={type}>
     <div className="agent-card-avatar">AI</div>
     <div className="agent-card-body">
-      <header><span>{label}</span><small>{type}</small></header>
+      <header><span>{label}</span></header>
       {title && <h4>{title}</h4>}
       {children}
     </div>

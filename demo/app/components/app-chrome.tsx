@@ -46,7 +46,7 @@ export function AppChrome({
           </span>
         </button>
         <div className="topbar-actions">
-          {isGrowthManagementApp && stage !== "importing" && <span className="management-app-badge">对话 · 进展 · 复盘</span>}
+          {isGrowthManagementApp && stage !== "importing" && <span className="management-app-badge">成长规划 Agent</span>}
           {isGrowthManagementApp && <button className="ghost-button compact management-back" onClick={onReturnToCompass}>← 返回方向探索</button>}
           {stage !== "landing" && <button className="ghost-button compact" onClick={onReset}>↻ 重置 Demo</button>}
         </div>

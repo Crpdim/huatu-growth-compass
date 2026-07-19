@@ -14,7 +14,6 @@ import { ExplorationPages } from "./components/exploration-pages";
 import { ProfilePages } from "./components/profile-pages";
 import { DirectionPages } from "./components/direction-pages";
 import { ManagementActionPages } from "./components/management-action-pages";
-import { ManagementNavigation } from "./components/management-navigation";
 import { ProgressPage } from "./components/progress-page";
 import { CompanionPage } from "./components/companion-page";
 import { ReviewPages } from "./components/review-pages";
@@ -146,8 +145,11 @@ export default function Home() {
             outcome: activeCompanionObstacle.outcome,
             nextTask: activeCompanionObstacle.nextTask,
           };
-  const companionProgress = companionPhase >= 7 ? 60 : 50;
-  const managementTaskDone = executionTaskDone.map((done, index) => done || (index === 2 && companionPhase >= 7));
+  const companionBaseProgress = Math.max(executionProgress, 50);
+  const companionProgress = Math.min(100, companionBaseProgress + (companionPhase >= 7 && !executionTaskDone[2] ? 10 : 0));
+  const managementTaskCredits = executionTasks.map((task, index) => executionTaskDone[index] ? task.weight : index === 2 && companionPhase >= 7 ? 10 : 0);
+  const managementProgress = managementTaskCredits.reduce((total, credit) => total + credit, 0);
+  const managementProgressClass = managementProgress < 15 ? "is-start" : managementProgress < 40 ? "is-exploring" : managementProgress < 70 ? "is-accelerating" : managementProgress < 95 ? "is-sprinting" : "is-finished";
   const managementConversationStage: "execution" | "companion" = companionPhase > 0 ? "companion" : "execution";
   const updatedAbilityDimensions = abilityDimensions.map((item, index) => ({
     ...item,
@@ -492,12 +494,6 @@ export default function Home() {
     }
   }
 
-  function chooseExecutionObstacle(index: number) {
-    setSelectedObstacle(index);
-    setExecutionTaskDone((current) => [false, current[1], current[2], current[3]]);
-    setExecutionPhase(2);
-  }
-
   function toggleExecutionTask(index: number) {
     const next = executionTaskDone.map((done, taskIndex) => taskIndex === index ? !done : done);
     setExecutionTaskDone(next);
@@ -584,8 +580,6 @@ export default function Home() {
         onReturnToCompass={() => setStage("rolemodels")}
         onNavigateJourney={navigateJourney}
       />
-      {isGrowthManagementApp && <ManagementNavigation stage={stage} conversationStage={managementConversationStage} onNavigate={goToActionStage} />}
-
       <ExplorationPages
         stage={stage}
         landingVisualRef={landingVisualRef}
@@ -676,15 +670,13 @@ export default function Home() {
         onGoToStage={goToActionStage}
         executionChatRef={executionChatRef}
         onSetExecutionPhase={setExecutionPhase}
-        executionObstacles={executionObstacles}
-        onChooseExecutionObstacle={chooseExecutionObstacle}
-        onCompleteFirstTasks={() => { setExecutionTaskDone((current) => [true, true, current[2], current[3]]); setExecutionPhase(4); }}
+        onRestartPlanningDemo={() => { setExecutionTaskDone([false, false, false, false]); setExecutionPhase(0); setSelectedObstacle(null); }}
         nextPlanPhase={nextPlanPhase}
         nextPlanStep={nextPlanStep}
         onStartNextPlan={() => { setNextPlanStep(0); setNextPlanPhase(1); }}
       />
 
-      {stage === "progress" && <ProgressPage progress={companionPhase >= 7 ? Math.max(executionProgress, companionProgress) : executionProgress} progressClass={executionProgressClass} tasks={executionTasks} taskDone={managementTaskDone} onToggleTask={toggleExecutionTask} onNavigate={goToActionStage} />}
+      {stage === "progress" && <ProgressPage progress={managementProgress} progressClass={managementProgressClass} tasks={executionTasks} taskCredits={managementTaskCredits} reviewSnapshot={companionPhase >= 8} conversationStage={managementConversationStage} onToggleTask={toggleExecutionTask} onNavigate={goToActionStage} />}
 
       {stage === "companion" && (
         <CompanionPage
