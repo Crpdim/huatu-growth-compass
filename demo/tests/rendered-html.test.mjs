@@ -7,6 +7,7 @@ const layoutUrl = new URL("../app/layout.tsx", import.meta.url);
 const demoDataUrl = new URL("../app/demo-data.ts", import.meta.url);
 const profilePageUrl = new URL("../app/components/profile-pages.tsx", import.meta.url);
 const managementPageUrl = new URL("../app/components/management-action-pages.tsx", import.meta.url);
+const progressPageUrl = new URL("../app/components/progress-page.tsx", import.meta.url);
 const lifeGamePageUrl = new URL("../app/components/life-game-page.tsx", import.meta.url);
 const lifeGameHtmlUrl = new URL("../public/life-game/index.html", import.meta.url);
 const lifeGameScriptUrl = new URL("../public/life-game/script.js", import.meta.url);
@@ -22,7 +23,7 @@ const featureUrls = [
   managementPageUrl,
   new URL("../app/components/management-navigation.tsx", import.meta.url),
   new URL("../app/components/agent-message.tsx", import.meta.url),
-  new URL("../app/components/progress-page.tsx", import.meta.url),
+  progressPageUrl,
   new URL("../app/components/companion-page.tsx", import.meta.url),
   new URL("../app/components/review-pages.tsx", import.meta.url),
   lifeGamePageUrl,
@@ -117,8 +118,9 @@ test("contains the complete Growth Compass demo journey", async () => {
     "profile_radar",
     "task_list",
     "stress_probe",
-    "本周进展",
-    "完成了多少，一眼就能看懂",
+    "任务管理",
+    "本周任务，一处管理",
+    "手动勾选、改期或暂停",
     "课程已经完成，配套练习仍缺少结果",
     "任务分值",
     "已完成",
@@ -212,7 +214,7 @@ test("uses finished product metadata instead of starter preview metadata", async
   assert.doesNotMatch(layout, /Starter Project|codex-preview|_sites-preview/);
 });
 
-test("keeps growth management content inside switchable Agent sessions", async () => {
+test("keeps growth management chat-first with an explicit task manager entry", async () => {
   const appPage = await readFile(pageUrl, "utf8");
   const management = await readFile(managementPageUrl, "utf8");
 
@@ -232,12 +234,39 @@ test("keeps growth management content inside switchable Agent sessions", async (
   assert.match(management, /activeSession === "progress"/);
   assert.match(management, /activeSession === "review"/);
   assert.match(management, /sessionConversations/);
+  assert.match(management, /agent-task-manager-entry/);
+  assert.match(management, /onGoToStage\("progress"\)/);
   assert.match(management, /我当前任务完成得怎么样/);
   assert.match(management, /帮我回顾一下这周/);
   assert.doesNotMatch(appPage, /ManagementNavigation/);
   assert.doesNotMatch(management, /agent-proactive-reminder/);
   assert.doesNotMatch(management, /周回顾与提醒/);
   assert.doesNotMatch(management, /后续解锁|查看完整画像依据|打开进展总览/);
+});
+
+test("shares manually controlled task state with the Agent workspace", async () => {
+  const [appPage, management, progress, globalStyles] = await Promise.all([
+    readFile(pageUrl, "utf8"),
+    readFile(managementPageUrl, "utf8"),
+    readFile(progressPageUrl, "utf8"),
+    readFile(globalStylesUrl, "utf8"),
+  ]);
+
+  assert.match(appPage, /taskManagerActions/);
+  assert.match(appPage, /taskManagerAgentPrompt/);
+  assert.match(appPage, /taskActions=\{taskManagerActions\}/);
+  assert.match(appPage, /taskManagerActions=\{taskManagerActions\}/);
+  assert.match(progress, /onToggleTask/);
+  assert.match(progress, /onSetTaskAction/);
+  assert.match(progress, /改到下周/);
+  assert.match(progress, /暂不做/);
+  assert.match(progress, /恢复任务/);
+  assert.match(progress, /AI 帮我调整/);
+  assert.match(progress, /让 Agent 帮我拆解/);
+  assert.match(management, /已暂停 · 可在任务管理中恢复/);
+  assert.match(management, /agentHandoffPrompt/);
+  assert.match(globalStyles, /\.task-manager-metrics/);
+  assert.match(globalStyles, /\.progress-spectrum i/);
 });
 
 test("wires every life-game exit to the intended Growth Compass stage", async () => {

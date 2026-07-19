@@ -55,6 +55,7 @@ type ManagementActionPagesProps = {
   executionProgressClass: string;
   executionTasks: ExecutionTask[];
   executionTaskDone: boolean[];
+  taskManagerActions: Record<number, "rescheduled" | "abandoned">;
   executionPhase: number;
   activeExecutionObstacle: ExecutionObstacle;
   completedExecutionTasks: ExecutionTask[];
@@ -66,10 +67,12 @@ type ManagementActionPagesProps = {
   nextPlanPhase: 0 | 1 | 2;
   nextPlanStep: number;
   onStartNextPlan: () => void;
+  agentHandoffPrompt: string;
+  onConsumeAgentHandoff: () => void;
 };
 
 export function ManagementActionPages(props: ManagementActionPagesProps) {
-  const { stage, selectedAuthorizationSources, profileImportSteps, profileImportStep, executionProgress, executionProgressClass, executionTasks, executionTaskDone, executionPhase, activeExecutionObstacle, completedExecutionTasks, onToggleExecutionTask, onGoToStage, executionChatRef, onSetExecutionPhase, onRestartPlanningDemo, nextPlanPhase, nextPlanStep, onStartNextPlan } = props;
+  const { stage, selectedAuthorizationSources, profileImportSteps, profileImportStep, executionProgress, executionProgressClass, executionTasks, executionTaskDone, taskManagerActions, executionPhase, activeExecutionObstacle, completedExecutionTasks, onToggleExecutionTask, onGoToStage, executionChatRef, onSetExecutionPhase, onRestartPlanningDemo, nextPlanPhase, nextPlanStep, onStartNextPlan, agentHandoffPrompt, onConsumeAgentHandoff } = props;
   const [planningStep, setPlanningStep] = useState(0);
   const [stressResponse, setStressResponse] = useState<string | null>(null);
   const [activeSession, setActiveSession] = useState<AgentSessionId>("planning");
@@ -94,7 +97,7 @@ export function ManagementActionPages(props: ManagementActionPagesProps) {
   const sentQuestion = currentConversation.sentQuestion;
   const composerReply = currentConversation.reply;
   const composerThinking = currentConversation.thinking;
-  const nextExecutionTask = executionTasks.find((_, index) => !executionTaskDone[index]);
+  const nextExecutionTask = executionTasks.find((_, index) => !executionTaskDone[index] && taskManagerActions[index] !== "abandoned");
   const sessionIcon: Record<AgentSessionId, string> = { planning: "规", learning: "学", progress: "进", review: "回" };
   const sessionContext: Record<AgentSessionId, string> = { planning: "规划与行动", learning: "学习答疑", progress: "进展查询", review: "复盘与校准" };
   const planningPrompts = planningStep === 0
@@ -113,6 +116,20 @@ export function ManagementActionPages(props: ManagementActionPagesProps) {
     review: ["这周完成得怎么样", "为什么没有完成", "下周怎么调整"],
   };
   const planningIsBusy = activeSession === "planning" && [1, 3, 5, 6, 8].includes(planningStep);
+
+  useEffect(() => {
+    if (stage !== "execution" || !agentHandoffPrompt) return;
+    const timer = window.setTimeout(() => {
+      setActiveSession("planning");
+      setReminderCenterOpen(false);
+      setSessionConversations((current) => ({
+        ...current,
+        planning: { ...current.planning, composerText: agentHandoffPrompt },
+      }));
+      onConsumeAgentHandoff();
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [agentHandoffPrompt, onConsumeAgentHandoff, stage]);
 
   useEffect(() => {
     const nextStep = new Map([[1, 2], [3, 4], [5, 6], [6, 7], [8, 9]]).get(planningStep);
@@ -138,13 +155,17 @@ export function ManagementActionPages(props: ManagementActionPagesProps) {
         ? `你当前完成 ${completedExecutionTasks.length} / ${executionTasks.length} 项，加权进度 ${executionProgress}%。明细已经直接展开在这条回复下面。`
         : sentQuestion.includes("调整方向") || sentQuestion.includes("重新考虑")
           ? "我先暂停新增备考任务。方向变化不会被当成失败；下一步会补一项路径对照任务，再由你决定继续、切换或先做生活规划。"
+        : sentQuestion.includes("重新排序") || sentQuestion.includes("拆成") || sentQuestion.includes("拆得")
+          ? `我已读取任务管理中的最新状态。建议先做“${nextExecutionTask?.title ?? "确认下一阶段"}”：先准备材料，再完成 15 分钟最小步骤，最后记录结果；原任务不会被清空。`
+        : sentQuestion.includes("核对国考") || sentQuestion.includes("报名材料")
+          ? "先核对专业目录、应届身份和证件材料。我会把缺少项作为待确认任务，不会替你标记完成。"
         : sentQuestion.includes("来不及") || sentQuestion.includes("太多")
           ? "收到。先不增加任务量，我会问清楚具体阻碍，再把最近的一项拆小。"
           : "我先把这个问题加入本轮对话。你可以继续补充具体场景，我会结合任务结果和已授权资料给出下一步。";
       setSessionConversations((current) => ({ ...current, [activeSession]: { ...current[activeSession], reply, thinking: false } }));
     }, 820);
     return () => window.clearTimeout(timer);
-  }, [activeSession, composerThinking, completedExecutionTasks.length, executionProgress, executionTasks.length, planningStep, sentQuestion]);
+  }, [activeSession, composerThinking, completedExecutionTasks.length, executionProgress, executionTasks.length, nextExecutionTask?.title, planningStep, sentQuestion]);
 
   useEffect(() => {
     if (stage !== "execution") return;
@@ -166,7 +187,7 @@ export function ManagementActionPages(props: ManagementActionPagesProps) {
       stream.scrollTo({ top: stream.scrollHeight, behavior });
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [stage, activeSession, planningStep, executionPhase, stressResponse, activeReminder, reminderSession, reminderAction, sentQuestion, composerThinking, composerReply, executionChatRef]);
+  }, [stage, activeSession, planningStep, executionPhase, stressResponse, activeReminder, reminderSession, reminderAction, sentQuestion, composerText, composerThinking, composerReply, executionChatRef]);
 
   function switchSession(session: AgentSessionId) {
     setActiveSession(session);
@@ -236,6 +257,7 @@ export function ManagementActionPages(props: ManagementActionPagesProps) {
       <div className="agent-session-workspace">
         <aside className="agent-session-list">
           <header><div><span className="agent-avatar">AI</span><div><b>成长规划 Agent</b><small>林小北的成长空间</small></div></div><button onClick={restartPlanningDemo} aria-label="重新开始演示会话">＋</button></header>
+          <button className="agent-task-manager-entry" onClick={() => onGoToStage("progress")}><span>任</span><div><b>任务管理</b><small>手动勾选、改期与调整</small></div><em>{completedExecutionTasks.length}/{executionTasks.length}</em></button>
           <span className="agent-session-label">会话</span>
           <div>{agentSessions.map((session) => <button className={activeSession === session.id ? "is-active" : ""} onClick={() => switchSession(session.id)} key={session.id}><span>{sessionIcon[session.id]}</span><div><b>{session.title}</b><small>{session.preview}</small></div><em>{session.badge ?? session.time}</em></button>)}</div>
           <footer><span>已授权</span><b>华图 · Bilibili · GitHub</b><small>消息和任务使用同一份画像</small></footer>
@@ -321,7 +343,7 @@ export function ManagementActionPages(props: ManagementActionPagesProps) {
               <AgentMessage type="progress_update" label="当前完成状态" title={`已完成 ${completedExecutionTasks.length} / ${executionTasks.length} 项，任务进度 ${executionProgress}%`} tone={completedExecutionTasks.length > 0 ? "success" : "default"}>
                 <div className="agent-session-metrics"><span><b>{completedExecutionTasks.length}/{executionTasks.length}</b>完成任务</span><span><b>{executionProgress}%</b>任务进度</span><span><b>{completedExecutionTasks.reduce((total, task) => total + task.durationMinutes, 0)}</b>投入分钟</span></div>
                 <div className={`weighted-progress-track ${executionProgressClass}`}><i style={{ width: `${executionProgress}%` }} /></div>
-                <div className="agent-task-list compact">{executionTasks.map((task, index) => <button className={executionTaskDone[index] ? "is-done" : ""} onClick={() => onToggleExecutionTask(index)} key={task.title}><span>{executionTaskDone[index] ? "✓" : index + 1}</span><div><b>{task.title}</b><small>{executionTaskDone[index] ? "已完成" : task.deadline} · 任务分值 {task.weight}</small><em>做到这里算完成：{task.criteria}</em></div></button>)}</div>
+                <div className="agent-task-list compact">{executionTasks.map((task, index) => <button className={`${executionTaskDone[index] ? "is-done" : ""} ${taskManagerActions[index] === "abandoned" ? "is-paused" : ""}`} onClick={() => onToggleExecutionTask(index)} disabled={taskManagerActions[index] === "abandoned"} key={task.title}><span>{executionTaskDone[index] ? "✓" : taskManagerActions[index] === "abandoned" ? "—" : index + 1}</span><div><b>{task.title}</b><small>{executionTaskDone[index] ? "已完成" : taskManagerActions[index] === "abandoned" ? "已暂停 · 可在任务管理中恢复" : taskManagerActions[index] === "rescheduled" ? "已改至下周三 20:00" : task.deadline} · 任务分值 {task.weight}</small><em>做到这里算完成：{task.criteria}</em></div></button>)}</div>
                 <div className="agent-next-action"><span>下一步先做</span><b>{nextExecutionTask?.title ?? "本周任务已经全部完成"}</b><small>{nextExecutionTask ? `预计 ${nextExecutionTask.durationMinutes} 分钟，完成后进度会增加 ${nextExecutionTask.weight}%` : "可以进入本周回顾，确认下一阶段。"}</small></div>
               </AgentMessage>
             </>}

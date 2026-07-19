@@ -90,6 +90,8 @@ export default function Home() {
   const [nextStageChoice, setNextStageChoice] = useState<NextStageChoice | null>(null);
   const [stagePlanPhase, setStagePlanPhase] = useState<0 | 1 | 2>(0);
   const [stagePlanStep, setStagePlanStep] = useState(0);
+  const [taskManagerActions, setTaskManagerActions] = useState<Record<number, "rescheduled" | "abandoned">>({});
+  const [taskManagerAgentPrompt, setTaskManagerAgentPrompt] = useState("");
 
   const currentRank = stageRank[stage];
   const availableRank = Math.min(journeySteps.length, Math.max(currentRank, furthestRank));
@@ -462,6 +464,8 @@ export default function Home() {
     setNextStageChoice(null);
     setStagePlanPhase(0);
     setStagePlanStep(0);
+    setTaskManagerActions({});
+    setTaskManagerAgentPrompt("");
   }
 
   function chooseRouteFollowup(index: number) {
@@ -498,6 +502,12 @@ export default function Home() {
   function toggleExecutionTask(index: number) {
     const next = executionTaskDone.map((done, taskIndex) => taskIndex === index ? !done : done);
     setExecutionTaskDone(next);
+    setTaskManagerActions((current) => {
+      if (!(index in current)) return current;
+      const updated = { ...current };
+      delete updated[index];
+      return updated;
+    });
     if (next[0] && next[1]) {
       setExecutionPhase(4);
     } else if (executionPhase >= 4) {
@@ -677,6 +687,7 @@ export default function Home() {
         executionProgressClass={executionProgressClass}
         executionTasks={executionTasks}
         executionTaskDone={executionTaskDone}
+        taskManagerActions={taskManagerActions}
         executionPhase={executionPhase}
         activeExecutionObstacle={activeExecutionObstacle}
         completedExecutionTasks={completedExecutionTasks}
@@ -684,13 +695,15 @@ export default function Home() {
         onGoToStage={goToActionStage}
         executionChatRef={executionChatRef}
         onSetExecutionPhase={setExecutionPhase}
-        onRestartPlanningDemo={() => { setExecutionTaskDone([false, false, false, false]); setExecutionPhase(0); setSelectedObstacle(null); }}
+        onRestartPlanningDemo={() => { setExecutionTaskDone([false, false, false, false]); setTaskManagerActions({}); setExecutionPhase(0); setSelectedObstacle(null); }}
         nextPlanPhase={nextPlanPhase}
         nextPlanStep={nextPlanStep}
         onStartNextPlan={() => { setNextPlanStep(0); setNextPlanPhase(1); }}
+        agentHandoffPrompt={taskManagerAgentPrompt}
+        onConsumeAgentHandoff={() => setTaskManagerAgentPrompt("")}
       />
 
-      {stage === "progress" && <ProgressPage progress={managementProgress} progressClass={managementProgressClass} tasks={executionTasks} taskCredits={managementTaskCredits} reviewSnapshot={companionPhase >= 8} conversationStage={managementConversationStage} onToggleTask={toggleExecutionTask} onNavigate={goToActionStage} />}
+      {stage === "progress" && <ProgressPage progress={managementProgress} progressClass={managementProgressClass} tasks={executionTasks} taskCredits={managementTaskCredits} taskActions={taskManagerActions} reviewSnapshot={companionPhase >= 8} conversationStage={managementConversationStage} onToggleTask={toggleExecutionTask} onSetTaskAction={(index, action) => setTaskManagerActions((current) => { const next = { ...current }; if (action) next[index] = action; else delete next[index]; return next; })} onNavigate={goToActionStage} onAskAgent={(prompt) => { setTaskManagerAgentPrompt(prompt); setStage("execution"); }} />}
 
       {stage === "companion" && (
         <CompanionPage
