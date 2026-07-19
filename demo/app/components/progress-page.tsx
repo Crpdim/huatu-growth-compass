@@ -196,7 +196,7 @@ export function ProgressPage({ progress, progressClass, tasks, taskCredits, task
       </main>
 
       <aside className="task-manager-side">
-        <article className="task-manager-permission-card"><span>你的任务，你做主</span><h3>可以直接增删改</h3><p>AI 只给建议。拆解、链接和时间调整都要由你点击应用。</p><div><span>✓ 新建与编辑</span><span>✓ 暂停与删除</span><span>✓ AI 单任务协助</span></div><small>演示：点击“体验 20 分钟华图入门课”旁的 AI，可把它拆成 3 步。</small></article>
+        {/* <article className="task-manager-permission-card"><span>你的任务，你做主</span><h3>可以直接增删改</h3><p>AI 只给建议。拆解、链接和时间调整都要由你点击应用。</p><div><span>✓ 新建与编辑</span><span>✓ 暂停与删除</span><span>✓ AI 单任务协助</span></div><small>演示：点击“体验 20 分钟华图入门课”旁的 AI，可把它拆成 3 步。</small></article> */}
         <article className="task-manager-node-card"><span>关键节点 · 演示</span><h3>国考报名窗口还有 7 天</h3><p>可以让 AI 找到官方报名专题，并保存到“确认可报岗位”。</p><button disabled={!registrationTask} onClick={() => { if (registrationTask) openTaskAi(registrationTask.id, "link"); }}>✦ {registrationTask ? "用 AI 找报名入口" : "对应任务已删除"}</button></article>
       </aside>
     </div>
