@@ -26,7 +26,6 @@ const {
   journeyDestinations,
   growthManagementStages,
   abilityDimensions,
-  profileContextDimensions,
   analysisSteps,
   authorizationSources,
   profileImportSteps,
@@ -642,7 +641,6 @@ export default function Home() {
         onSetAnalysisStep={setAnalysisStep}
         answeredCount={answers.filter((answer) => answer >= 0).length}
         abilityDimensions={abilityDimensions}
-        profileContextDimensions={profileContextDimensions}
         radarPoints={radarPoints}
         activeDimension={activeDimension}
         onSetActiveDimension={setActiveDimension}

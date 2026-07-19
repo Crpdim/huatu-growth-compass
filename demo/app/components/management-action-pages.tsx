@@ -33,11 +33,8 @@ const agentProfileDimensions = [
   { label: "学习知识", value: 3.5, summary: "基础可用", evidence: "成绩与课程记录" },
   { label: "抗压情绪", value: 3.7, summary: "能调整节奏", evidence: "计划中断情境" },
   { label: "沟通协作", value: 3.6, summary: "沟通稳妥", evidence: "家庭协商与项目经历" },
-];
-
-const agentProfileContextDimensions = [
-  { label: "健康情况", status: "✓ 基础达标", tag: "条件项 · 不计分", summary: "未发现影响一般岗位选择的硬性限制", evidence: "用户自评与授权趋势" },
-  { label: "家庭情况", status: "支持较强", tag: "支持度 − 约束度", summary: "家庭支持较强，但需考虑异地限制", evidence: "地域与投入确认" },
+  { label: "健康情况", value: 4.1, summary: "状态稳定", evidence: "健康确认与日常状态记录" },
+  { label: "家庭情况", value: 3.6, summary: "支持较强", evidence: "家庭支持与现实限制确认" },
 ];
 
 const radarPoint = (index: number, value: number, radius = 82) => {
@@ -256,7 +253,7 @@ export function ManagementActionPages(props: ManagementActionPagesProps) {
               {planningStep >= 2 && <AgentMessage type="profile_radar" label="AI 查找完成" title="这是你当前的八维成长画像">
                 <div className="agent-profile-summary"><strong>整体特点：稳健、有分析基础，也看重稳定与边界</strong><p>当前短板不是“能力不行”，而是实际任务证据还比较少。</p></div>
                 <div className="agent-profile-visual">
-                  <svg className="agent-profile-radar" viewBox="0 0 240 240" role="img" aria-label="性格适配、专业能力、兴趣匹配、学习知识、抗压情绪和沟通协作六项能力评分雷达；健康和家庭作为条件项单独展示">
+                  <svg className="agent-profile-radar" viewBox="0 0 240 240" role="img" aria-label="性格适配、专业能力、兴趣匹配、学习知识、抗压情绪、沟通协作、健康情况和家庭情况八维画像雷达">
                     {[0.25, 0.5, 0.75, 1].map((level) => <polygon className="agent-profile-radar-grid" points={radarPolygon(level)} key={level} />)}
                     {agentProfileDimensions.map((item, index) => {
                       const [axisX, axisY] = radarPoint(index, 1).split(",");
@@ -269,8 +266,7 @@ export function ManagementActionPages(props: ManagementActionPagesProps) {
                   </svg>
                   <div className="agent-profile-dimensions">{agentProfileDimensions.map((item) => <section key={item.label}><span>{item.label}</span><b>{item.value}<small>/5</small></b><strong>{item.summary}</strong><p>依据：{item.evidence}</p></section>)}</div>
                 </div>
-                <div className="agent-profile-context">{agentProfileContextDimensions.map((item) => <section key={item.label}><div><span>{item.label}</span><b>{item.status}</b></div><em>{item.tag}</em><p>{item.summary}</p><small>依据：{item.evidence}</small></section>)}</div>
-                <div className="agent-inline-note">八维画像 v1 · 六项能力使用 0–5 分；健康用“达标 / 受限”表示，家庭用“支持度 − 约束度”表示。所有结论保留来源，任务证据只做增量更新。</div>
+                {/* <div className="agent-inline-note">八维画像 v1 · 八项指标统一显示。所有结论保留来源；健康与家庭只用于改进岗位适配和计划安排，不作诊断或价值判断。</div> */}
               </AgentMessage>}
 
               {planningStep >= 3 && <div className="execution-message user" data-script-turn="tasks"><span>你</span><div><small>刚刚</small><p>帮我安排一下任务看看我适不适合考公。</p></div></div>}

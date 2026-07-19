@@ -4,23 +4,30 @@ import test from "node:test";
 
 const pageUrl = new URL("../app/page.tsx", import.meta.url);
 const layoutUrl = new URL("../app/layout.tsx", import.meta.url);
+const demoDataUrl = new URL("../app/demo-data.ts", import.meta.url);
+const profilePageUrl = new URL("../app/components/profile-pages.tsx", import.meta.url);
+const managementPageUrl = new URL("../app/components/management-action-pages.tsx", import.meta.url);
+const lifeGamePageUrl = new URL("../app/components/life-game-page.tsx", import.meta.url);
+const lifeGameHtmlUrl = new URL("../public/life-game/index.html", import.meta.url);
+const lifeGameScriptUrl = new URL("../public/life-game/script.js", import.meta.url);
+const globalStylesUrl = new URL("../app/globals.css", import.meta.url);
 const featureUrls = [
   pageUrl,
-  new URL("../app/demo-data.ts", import.meta.url),
+  demoDataUrl,
   new URL("../app/demo-types.ts", import.meta.url),
   new URL("../app/components/app-chrome.tsx", import.meta.url),
   new URL("../app/components/exploration-pages.tsx", import.meta.url),
-  new URL("../app/components/profile-pages.tsx", import.meta.url),
+  profilePageUrl,
   new URL("../app/components/direction-pages.tsx", import.meta.url),
-  new URL("../app/components/management-action-pages.tsx", import.meta.url),
+  managementPageUrl,
   new URL("../app/components/management-navigation.tsx", import.meta.url),
   new URL("../app/components/agent-message.tsx", import.meta.url),
   new URL("../app/components/progress-page.tsx", import.meta.url),
   new URL("../app/components/companion-page.tsx", import.meta.url),
   new URL("../app/components/review-pages.tsx", import.meta.url),
-  new URL("../app/components/life-game-page.tsx", import.meta.url),
-  new URL("../public/life-game/index.html", import.meta.url),
-  new URL("../public/life-game/script.js", import.meta.url),
+  lifeGamePageUrl,
+  lifeGameHtmlUrl,
+  lifeGameScriptUrl,
 ];
 
 test("contains the complete Growth Compass demo journey", async () => {
@@ -35,9 +42,9 @@ test("contains the complete Growth Compass demo journey", async () => {
     "寻找重复偏好",
     "这些判断说得像你吗",
     "让 AI 多了解你一点",
-    "健康情况（只确认是否受限）",
+    "健康与精力状态",
     "家庭支持与限制",
-    "只记录影响路径可行性的条件",
+    "用于判断规划能否实施，不评价家庭层级",
     "你对未来生活有什么想法",
     "可选授权",
     "Bilibili",
@@ -51,8 +58,8 @@ test("contains the complete Growth Compass demo journey", async () => {
     "AI 正在补全任务画像",
     "同步授权数据",
     "检索职业路径资料库",
-    "六项能力会随任务证据更新",
-    "性格适配4.5",
+    "八项指标都保留可追溯依据",
+    "八维成长画像雷达",
     "抗压与情绪",
     "考公方向好像更匹配",
     "看看相似的人怎么走",
@@ -93,12 +100,11 @@ test("contains the complete Growth Compass demo journey", async () => {
     "我的能力怎样",
     "正在查找已确认画像与授权资料",
     "这是你当前的八维成长画像",
-    "六项能力使用 0–5 分",
+    "八项指标统一显示",
     "健康情况",
     "家庭情况",
-    "支持度 − 约束度",
     "家庭支持较强，但需考虑异地限制",
-    "条件项 · 不计分",
+    "八维综合指数 / 5",
     "帮我安排一下任务看看我适不适合考公",
     "先用 4 个小任务验证你是否适合考公",
     "我确认了想去税务局",
@@ -207,10 +213,7 @@ test("uses finished product metadata instead of starter preview metadata", async
 
 test("keeps growth management content inside switchable Agent sessions", async () => {
   const appPage = await readFile(pageUrl, "utf8");
-  const management = await readFile(
-    new URL("../app/components/management-action-pages.tsx", import.meta.url),
-    "utf8",
-  );
+  const management = await readFile(managementPageUrl, "utf8");
 
   assert.match(management, /activeSession/);
   assert.match(management, /agent-session-list/);
@@ -234,4 +237,59 @@ test("keeps growth management content inside switchable Agent sessions", async (
   assert.doesNotMatch(management, /agent-proactive-reminder/);
   assert.doesNotMatch(management, /周回顾与提醒/);
   assert.doesNotMatch(management, /后续解锁|查看完整画像依据|打开进展总览/);
+});
+
+test("wires both life-game exits to the intended Growth Compass stages", async () => {
+  const [appPage, bridge, gameHtml, gameScript] = await Promise.all([
+    readFile(pageUrl, "utf8"),
+    readFile(lifeGamePageUrl, "utf8"),
+    readFile(lifeGameHtmlUrl, "utf8"),
+    readFile(lifeGameScriptUrl, "utf8"),
+  ]);
+
+  assert.match(gameHtml, /id="open-growth-planning"/);
+  assert.match(gameHtml, /id="complete-to-profile"/);
+  assert.match(gameScript, /growthPlanningLink\.addEventListener\("click"/);
+  assert.match(gameScript, /notifyGrowthCompass\("huatu:explore-planning"\)/);
+  assert.match(gameScript, /completeToProfileButton\.addEventListener\("click"/);
+  assert.match(gameScript, /notifyGrowthCompass\("huatu:life-game-complete"\)/);
+  assert.match(gameScript, /window\.parent\.postMessage\(\{ type \}, window\.location\.origin\)/);
+  assert.match(bridge, /event\.origin !== window\.location\.origin/);
+  assert.match(bridge, /event\.source !== frameRef\.current\?\.contentWindow/);
+  assert.match(bridge, /event\.data\?\.type === "huatu:explore-planning"/);
+  assert.match(bridge, /event\.data\?\.type === "huatu:life-game-complete"/);
+  assert.match(appPage, /onExplorePlanning=\{\(\) => setStage\("landing"\)\}/);
+  assert.match(appPage, /setSelectedPurpose\("steady"\)/);
+  assert.match(appPage, /setStage\("profile"\)/);
+});
+
+test("renders health and family inside a real eight-axis profile without exposing scoring prompts", async () => {
+  const [demoData, profilePage, managementPage, globalStyles] = await Promise.all([
+    readFile(demoDataUrl, "utf8"),
+    readFile(profilePageUrl, "utf8"),
+    readFile(managementPageUrl, "utf8"),
+    readFile(globalStylesUrl, "utf8"),
+  ]);
+  const abilityBlock = demoData.match(/export const abilityDimensions = \[([\s\S]*?)\n\];/)?.[1];
+  const agentBlock = managementPage.match(/const agentProfileDimensions = \[([\s\S]*?)\n\];/)?.[1];
+
+  assert.ok(abilityBlock, "abilityDimensions should remain a static eight-axis array");
+  assert.ok(agentBlock, "agentProfileDimensions should remain a static eight-axis array");
+  assert.equal([...abilityBlock.matchAll(/\{ label:/g)].length, 8);
+  assert.equal([...agentBlock.matchAll(/\{ label:/g)].length, 8);
+
+  for (const label of ["性格适配", "专业能力", "兴趣匹配度", "学习与知识", "抗压与情绪", "沟通协作", "健康情况", "家庭情况"]) {
+    assert.match(abilityBlock, new RegExp(label));
+  }
+
+  assert.match(profilePage, /aria-label="八维成长画像雷达/);
+  assert.match(profilePage, /八维综合指数 \/ 5/);
+  assert.match(managementPage, /八维画像雷达/);
+  assert.match(globalStyles, /\.radar-axis\.axis-6/);
+  assert.match(globalStyles, /\.radar-axis\.axis-7/);
+  assert.doesNotMatch(demoData + profilePage + managementPage, /profileContextDimensions|agentProfileContextDimensions|六项能力|条件项 · 不计分/);
+  assert.doesNotMatch(
+    demoData + profilePage + managementPage,
+    /HRV|SES|父母期望问卷|压力游戏|体能耐受|精力阈值|经济资本|文化资本|社会资源|沟通质量|x0\.3|x0\.4/,
+  );
 });

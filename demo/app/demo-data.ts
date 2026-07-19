@@ -17,18 +17,15 @@ export const abilityDimensions = [
   { label: "学习与知识", value: 3.1, tag: "基础达标", summary: "本科专业基础处于中游，具备继续学习的起点，持续学习成果仍待补充。", evidence: "资料填写：本科大二、专业成绩中游", confidence: "medium", referenceOnly: false, color: "#d9b63e" },
   { label: "抗压与情绪", value: 4.8, tag: "韧性突出", summary: "计划受阻后倾向缩小任务、继续推进，对备考节奏和规则型任务有较好耐受。", evidence: "计划中断、风险比较与规则任务情境", confidence: "medium", referenceOnly: false, color: "#2d9f7f" },
   { label: "沟通协作", value: 3.9, tag: "沟通稳妥", summary: "愿意说明顾虑并协调现实期待，具备公共服务场景需要的基础沟通意识。", evidence: "家庭期待协商情境 + 课程项目经历", confidence: "medium", referenceOnly: false, color: "#4778df" },
-];
-
-export const profileContextDimensions = [
-  { id: "health", label: "健康情况", status: "✓ 基础达标", tag: "条件项 · 不计分", summary: "目前未发现影响一般岗位选择的硬性限制；只有出现明确限制时，才提示相关高强度岗位可能受限。", evidence: "用户自评 + 已授权的活动与睡眠趋势", confidence: "low", tone: "positive" },
-  { id: "family", label: "家庭情况", status: "支持较强", tag: "支持度 − 约束度", summary: "家庭支持较强，但需考虑异地限制。它影响哪些路径可行，不参与能力评分。", evidence: "地域偏好、家庭期待与每周可投入时间", confidence: "medium", tone: "neutral" },
+  { label: "健康情况", value: 4.1, tag: "状态稳定", summary: "目前的日常状态能够支持常规学习与岗位体验；如后续出现明确限制，任务强度和岗位建议会相应调整。", evidence: "用户确认的健康情况与日常状态记录", confidence: "low", referenceOnly: false, color: "#26a6a1" },
+  { label: "家庭情况", value: 3.6, tag: "支持较强", summary: "家庭支持继续探索，但异地选择仍需提前沟通；规划会优先保留现实上更容易实施的路径。", evidence: "家庭支持、地域偏好与可投入时间确认", confidence: "medium", referenceOnly: false, color: "#d56f9c" },
 ];
 
 export const analysisSteps = [
   { label: "读取手动资料", detail: "核对学校、年级、专业、经历与现实约束", output: "手动填写资料已完成核对" },
   { label: "同步授权数据", detail: "读取用户勾选的平台样例数据", output: "授权数据已转成可追溯的任务线索" },
   { label: "整理情境回答证据", detail: "提取人生课题与情境选择中的稳定线索", output: "只保留可追溯的选择依据" },
-  { label: "匹配八维建模口径", detail: "六项能力使用 0–5 分；健康与家庭按条件单独建模", output: "六项能力评分与两项现实条件完成对应" },
+  { label: "匹配八维建模口径", detail: "将能力表现和现实支持条件整理为八项画像指标", output: "八项指标已完成统一映射" },
   { label: "检索职业路径资料库", detail: "查找公考 / 考编、企业求职与继续升学要求", output: "获得 3 类路径的通用能力参照" },
   { label: "交叉校验并生成画像", detail: "检查证据冲突、信息缺口和结论置信度", output: "低置信度结论已标记为待验证" },
 ];

@@ -84,9 +84,11 @@ AI 接口优先返回结构化 JSON，至少包含：
 - 前端应用位于 `demo/`，所有 npm 命令默认在该目录执行；
 - 当前应用采用单页状态切换，`demo/app/page.tsx` 只负责状态、动画和页面编排；
 - 独立功能页位于 `demo/app/components/`，按探索、画像、方向、任务管理、AI 伴学和复盘结算划分；
+- `demo/app/components/life-game-page.tsx` 负责嵌入人生模拟器，并校验同源 `postMessage` 后将“探索人生规划”和“补全任务画像”分别接回主流程；
 - 静态题库、案例、评分维度和任务模板位于 `demo/app/demo-data.ts`，共享流程类型位于 `demo/app/demo-types.ts`；
 - 全局样式位于 `demo/app/globals.css`；
 - 静态图片位于 `demo/public/`；
+- `demo/public/life-game/` 是独立静态小游戏，内部资源保持相对路径；父页面 iframe 地址必须使用 `NEXT_PUBLIC_BASE_PATH` 兼容 GitHub Pages 子路径；
 - 当前没有业务后端、真实 AI 接口、登录和持久化数据库；
 - `demo/.openai/hosting.json` 中的 `d1`、`r2` 均为 `null`。
 
@@ -152,7 +154,9 @@ git diff --check
 
 当前自动测试主要检查关键文案和元数据是否存在，尚未覆盖完整点击流程、视觉回归和真实 AI 行为。改动交互状态时，需要人工走查主链路：
 
-> 首页 → 人生课题 → 情境探索 → 画像确认 → 事实补充 → AI 成长坐标 → 三种人生 → 体制内体验 → 证据更新 → 7 天计划
+> 人生模拟器 → 体制内人生 → 模范公务员 → 补全任务画像 → AI 八维画像 → 三条路径 → 体制内体验 → 导入成长管理 → Agent 安排任务 → Agent 查询进展 → Agent 周回顾
+
+同时检查人生模拟器右上角“没有人生目标？”能否进入原有方向探索入口。成长管理中的进展与回顾必须保留在各自 Agent 会话中，不恢复独立上层跳转页。
 
 ### 8.3 GitHub Pages 子路径
 
