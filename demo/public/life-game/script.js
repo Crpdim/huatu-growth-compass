@@ -27,7 +27,6 @@ const sceneCompleteTitle = document.querySelector(".complete-title");
 const sceneCompleteSummary = document.querySelector("#complete-summary");
 const returnPreviousQuestionButton = document.querySelector("#redo-chat");
 const dreamRoadmapButton = document.querySelector("#dream-roadmap");
-const dreamGuide = document.querySelector("#dream-guide");
 const transitionCta = document.querySelector("#transition-cta");
 const nextSceneButton = document.querySelector("#next-scene");
 const finalProfile = document.querySelector("#final-profile");
@@ -299,7 +298,9 @@ returnPreviousQuestionButton.addEventListener("click", () => {
   stopSceneTimer();
   goToPreviousQuestion();
 });
-dreamRoadmapButton.addEventListener("click", toggleDreamRoadmap);
+dreamRoadmapButton.addEventListener("click", () => {
+  notifyGrowthCompass("huatu:life-game-complete");
+});
 nextSceneButton.addEventListener("click", goToNextScene);
 
 identityForm.addEventListener("submit", (event) => {
@@ -663,7 +664,6 @@ function renderFinalScene(scene) {
   sceneStatus.textContent = "";
   transitionCta.classList.add("hidden");
   renderFinalIdentity();
-  resetDreamRoadmap();
   updateFinalPreviousQuestionButton();
 }
 
@@ -683,8 +683,6 @@ function renderFinalIdentity() {
 }
 
 function resetCompletionDetails() {
-  resetDreamRoadmap();
-
   if (transitionCta) {
     transitionCta.classList.add("hidden");
   }
@@ -737,60 +735,6 @@ function addChatMessage(speaker, text, type) {
   message.append(speakerNode, textNode);
   chatFeed.appendChild(message);
   chatFeed.scrollTop = chatFeed.scrollHeight;
-}
-
-function toggleDreamRoadmap() {
-  if (dreamGuide.classList.contains("hidden")) {
-    showDreamRoadmap();
-    return;
-  }
-
-  resetDreamRoadmap();
-}
-
-function showDreamRoadmap() {
-  dreamGuide.replaceChildren();
-
-  const title = document.createElement("p");
-  title.className = "dream-guide-title";
-  title.textContent = "接近这个结局，可以先这样走：";
-
-  const list = document.createElement("ol");
-  list.className = "dream-guide-list";
-
-  const characterName = savedIdentity?.characterName || "你";
-  const occupation = savedIdentity?.occupation || "体制内方向";
-  const major = savedIdentity?.major || "专业";
-
-  [
-    `先把目标拆清楚：${characterName}现在要做的不是空想，而是先对照岗位要求，把适合 ${occupation} 和 ${major} 的地区、编制类型、学历门槛一项项列出来。`,
-    "把备考拆成三块：行测刷题、申论/公文写作、岗位常识，每周都做一次错题复盘。",
-    "报考前先算现实账：离家远近、工资水平、生活成本、晋升空间，别只看热闹。",
-    "练表达也很重要：多做结构化面试练习，习惯把话说稳、说清、说有逻辑。",
-    "入职后把小事做好：流程、材料、沟通、留痕、纪律，先把“靠谱”做成标签。",
-    "想走得更远，就找一个能长期学习的节奏，把每一件事都当成升级经验值。"
-  ].forEach((stepText) => {
-    const item = document.createElement("li");
-    item.textContent = stepText;
-    list.appendChild(item);
-  });
-
-  dreamGuide.append(title, list);
-  dreamGuide.classList.remove("hidden");
-  dreamRoadmapButton.setAttribute("aria-expanded", "true");
-}
-
-function resetDreamRoadmap() {
-  if (!dreamGuide) {
-    return;
-  }
-
-  dreamGuide.classList.add("hidden");
-  dreamGuide.replaceChildren();
-
-  if (dreamRoadmapButton) {
-    dreamRoadmapButton.setAttribute("aria-expanded", "false");
-  }
 }
 
 function burst(button) {

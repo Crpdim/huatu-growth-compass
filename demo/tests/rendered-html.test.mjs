@@ -156,6 +156,7 @@ test("contains the complete Growth Compass demo journey", async () => {
     "没有人生目标？点击探索你的人生规划",
     "模范公务员达成",
     "补全任务画像 →",
+    "梦想照进现实",
     "huatu:explore-planning",
     "huatu:life-game-complete",
   ]) {
@@ -239,7 +240,7 @@ test("keeps growth management content inside switchable Agent sessions", async (
   assert.doesNotMatch(management, /后续解锁|查看完整画像依据|打开进展总览/);
 });
 
-test("wires both life-game exits to the intended Growth Compass stages", async () => {
+test("wires every life-game exit to the intended Growth Compass stage", async () => {
   const [appPage, bridge, gameHtml, gameScript] = await Promise.all([
     readFile(pageUrl, "utf8"),
     readFile(lifeGamePageUrl, "utf8"),
@@ -249,10 +250,13 @@ test("wires both life-game exits to the intended Growth Compass stages", async (
 
   assert.match(gameHtml, /id="open-growth-planning"/);
   assert.match(gameHtml, /id="complete-to-profile"/);
+  assert.match(gameHtml, /id="dream-roadmap"/);
   assert.match(gameScript, /growthPlanningLink\.addEventListener\("click"/);
   assert.match(gameScript, /notifyGrowthCompass\("huatu:explore-planning"\)/);
   assert.match(gameScript, /completeToProfileButton\.addEventListener\("click"/);
   assert.match(gameScript, /notifyGrowthCompass\("huatu:life-game-complete"\)/);
+  assert.match(gameScript, /dreamRoadmapButton\.addEventListener\("click", \(\) => \{\s*notifyGrowthCompass\("huatu:life-game-complete"\)/);
+  assert.doesNotMatch(gameScript, /toggleDreamRoadmap|showDreamRoadmap/);
   assert.match(gameScript, /window\.parent\.postMessage\(\{ type \}, window\.location\.origin\)/);
   assert.match(bridge, /event\.origin !== window\.location\.origin/);
   assert.match(bridge, /event\.source !== frameRef\.current\?\.contentWindow/);
