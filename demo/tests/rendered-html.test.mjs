@@ -198,6 +198,8 @@ test("keeps growth management content inside switchable Agent sessions", async (
   assert.match(management, /agent-profile-radar/);
   assert.match(management, /planningStep === 7/);
   assert.match(management, /planningIsBusy/);
+  assert.match(management, /data-script-turn="ability"/);
+  assert.match(management, /getBoundingClientRect\(\)\.top/);
   assert.match(management, /agent-session-metrics/);
   assert.match(management, /resourceAdded/);
   assert.match(management, /agent-reminder-center/);

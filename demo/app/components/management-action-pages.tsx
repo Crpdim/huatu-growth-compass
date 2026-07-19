@@ -148,8 +148,23 @@ export function ManagementActionPages(props: ManagementActionPagesProps) {
     if (stage !== "execution") return;
     const stream = executionChatRef.current;
     if (!stream) return;
-    stream.scrollTo({ top: stream.scrollHeight, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
-  }, [stage, activeSession, planningStep, executionPhase, stressResponse, activeReminder, reminderAction, sentQuestion, composerThinking, composerReply, executionTaskDone, executionChatRef]);
+    const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+    const frame = window.requestAnimationFrame(() => {
+      const hasConversationReply = Boolean(sentQuestion || composerThinking || composerReply);
+      const hasManualReminder = activeReminder !== null && reminderSession === activeSession;
+      if (activeSession === "planning" && !hasConversationReply && !hasManualReminder && planningStep > 0) {
+        const turn = planningStep <= 2 ? "ability" : planningStep <= 4 ? "tasks" : planningStep <= 6 ? "tax" : planningStep === 7 ? "registration-alert" : "registration-done";
+        const anchor = stream.querySelector<HTMLElement>(`[data-script-turn="${turn}"]`);
+        if (anchor) {
+          const top = anchor.getBoundingClientRect().top - stream.getBoundingClientRect().top + stream.scrollTop - 14;
+          stream.scrollTo({ top: Math.max(0, top), behavior });
+          return;
+        }
+      }
+      stream.scrollTo({ top: stream.scrollHeight, behavior });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [stage, activeSession, planningStep, executionPhase, stressResponse, activeReminder, reminderSession, reminderAction, sentQuestion, composerThinking, composerReply, executionChatRef]);
 
   function switchSession(session: AgentSessionId) {
     setActiveSession(session);
@@ -228,10 +243,10 @@ export function ManagementActionPages(props: ManagementActionPagesProps) {
           {reminderCenterOpen && <aside className="agent-reminder-center" aria-label="提醒中心"><header><div><span>提醒中心</span><b>3 条待处理</b></div><button onClick={() => setReminderCenterOpen(false)} aria-label="关闭提醒中心">×</button></header><div>{reminderItems.map((item) => <button onClick={() => bringReminderIntoConversation(item.id)} key={item.id}><i className={`is-${item.tone}`}>{item.id === "registration" ? "报" : item.id === "deadline" ? "期" : "心"}</i><span><small>{item.label}</small><b>{item.title}</b><em>{item.meta}</em></span><strong>在当前会话处理 →</strong></button>)}</div><footer>提醒独立于会话；处理时由 Agent 带入你正在进行的对话。</footer></aside>}
           <div className="agent-home-stream" ref={executionChatRef} aria-live="polite">
             {activeSession === "planning" && <>
-              <div className="agent-chat-greeting"><h2>你好，林小北 <span>🌱</span></h2><p>我是你的成长规划 Agent。</p></div>
-              <div className="execution-message agent"><span>AI</span><div><small>刚刚</small></div></div>
+              <div className="agent-chat-greeting"><h2>你好，林小北 <span>🌱</span></h2><p>我是你的成长规划 Agent。你问一个问题，我回答一个问题。</p></div>
+              <div className="execution-message agent"><span>AI</span><div><small>刚刚</small><p>可以先问我：你的能力怎么样、适合验证什么方向，或者本周先做什么。</p></div></div>
 
-              {planningStep >= 1 && <div className="execution-message user"><span>你</span><div><small>刚刚</small><p>我的能力怎样？</p></div></div>}
+              {planningStep >= 1 && <div className="execution-message user" data-script-turn="ability"><span>你</span><div><small>刚刚</small><p>我的能力怎样？</p></div></div>}
               {planningStep === 1 && <div className="agent-thinking-line"><span className="agent-avatar is-thinking">AI</span><p>正在查找已确认画像与授权资料<i /><i /><i /></p></div>}
               {planningStep >= 2 && <AgentMessage type="profile_radar" label="AI 查找完成" title="这是你当前的六维能力画像">
                 <div className="agent-profile-summary"><strong>整体特点：稳健、有分析基础，也看重稳定与边界</strong><p>当前短板不是“能力不行”，而是实际任务证据还比较少。</p></div>
@@ -252,14 +267,14 @@ export function ManagementActionPages(props: ManagementActionPagesProps) {
                 <div className="agent-inline-note">画像版本 v1 · 依据来自情境回答、课程项目和你主动确认的信息；行为任务完成后会增量更新，不会覆盖原始记录。</div>
               </AgentMessage>}
 
-              {planningStep >= 3 && <div className="execution-message user"><span>你</span><div><small>刚刚</small><p>帮我安排一下任务看看我适不适合考公。</p></div></div>}
+              {planningStep >= 3 && <div className="execution-message user" data-script-turn="tasks"><span>你</span><div><small>刚刚</small><p>帮我安排一下任务看看我适不适合考公。</p></div></div>}
               {planningStep === 3 && <div className="agent-thinking-line"><span className="agent-avatar is-thinking">AI</span><p>正在按每周 6 小时安排低成本验证任务<i /><i /><i /></p></div>}
               {planningStep >= 4 && <AgentMessage type="task_list" label="AI 已安排" title="先用 4 个小任务验证你是否适合考公">
                 <p>这些任务只验证岗位认知、学习体验和真实代价，不会替你锁定方向。</p>
                 <div className="agent-task-list">{executionTasks.map((task, index) => <button className={executionTaskDone[index] ? "is-done" : ""} onClick={() => onToggleExecutionTask(index)} key={task.title}><span>{executionTaskDone[index] ? "✓" : index + 1}</span><div><b>{task.title}</b><small>{task.deadline} · 任务分值 {task.weight}</small><em>做到这里算完成：{task.criteria}</em></div></button>)}</div>
               </AgentMessage>}
 
-              {planningStep >= 5 && <div className="execution-message user"><span>你</span><div><small>刚刚</small><p>我确认了想去税务局</p></div></div>}
+              {planningStep >= 5 && <div className="execution-message user" data-script-turn="tax"><span>你</span><div><small>刚刚</small><p>我确认了想去税务局</p></div></div>}
               {planningStep === 5 && <div className="agent-thinking-line"><span className="agent-avatar is-thinking">AI</span><p>正在把税务局意向加入本周计划<i /><i /><i /></p></div>}
               {planningStep >= 6 && <AgentMessage type="task_list" label="任务已更新" title="已把税务局作为本周重点岗位" tone="success">
                 <div className="agent-plan-change"><s>确认 1 个可报岗位</s><i>→</i><b>核对税务局岗位资格与专业目录</b></div>
@@ -267,13 +282,13 @@ export function ManagementActionPages(props: ManagementActionPagesProps) {
                 <div className="agent-updated-task-list"><span><i>1</i><b>核对税务局岗位资格</b><small>今天 20:00 · 完成标准：确认专业、学历和应届身份</small></span><span><i>2</i><b>整理报名材料</b><small>周四 18:00 · 完成标准：身份证明与学历信息齐全</small></span><span><i>3</i><b>体验 20 分钟行测入门课</b><small>周日 16:00 · 完成标准：记录难点和真实感受</small></span></div>
               </AgentMessage>}
 
-              {planningStep >= 7 && <div className="agent-proactive-alert"><AgentMessage type="checkpoint_alert" label="AI 主动提醒 · 关键节点" title="需要赶紧报名了，国考报名窗口还有 7 天" tone="warning">
+              {planningStep >= 7 && <div className="agent-proactive-alert" data-script-turn="registration-alert"><AgentMessage type="checkpoint_alert" label="AI 主动提醒 · 关键节点" title="需要赶紧报名了，国考报名窗口还有 7 天" tone="warning">
                 <p>你已经确认税务局意向，但报名状态还没确认。这个节点一旦错过，会影响本年度安排。</p>
                 <div className="agent-checkpoint-list"><span><b>1</b>核对专业目录</span><span><b>2</b>确认应届身份</span><span><b>3</b>提交报名材料</span></div>
                 {/* {planningStep === 7 && <div className="agent-inline-note">如果已经完成，直接回复：我已经报了名</div>} */}
               </AgentMessage></div>}
 
-              {planningStep >= 8 && <div className="execution-message user"><span>你</span><div><small>刚刚</small><p>我已经报了名</p></div></div>}
+              {planningStep >= 8 && <div className="execution-message user" data-script-turn="registration-done"><span>你</span><div><small>刚刚</small><p>我已经报了名</p></div></div>}
               {planningStep === 8 && <div className="agent-thinking-line"><span className="agent-avatar is-thinking">AI</span><p>正在记录报名完成并重排本周任务<i /><i /><i /></p></div>}
               {planningStep >= 9 && <AgentMessage type="task_list" label="任务安排已更新" title="已记录报名完成，接下来准备笔试体验" tone="success">
                 <div className="agent-completion-banner"><span>✓</span><div><b>国考报名</b><p>已完成 · 已加入成长记录</p></div></div>
