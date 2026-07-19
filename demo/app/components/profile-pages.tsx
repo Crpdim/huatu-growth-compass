@@ -89,7 +89,7 @@ export function ProfilePages(props: ProfilePagesProps) {
             <p>你倾向先了解现实条件，再通过一次小体验判断方向。你当前最想解决的是“{purpose.title}”。</p>
             <div className="type-explanation"><span>这个标签有什么用？</span><p>它帮助系统理解你的选择方式，并决定接下来先补充哪些信息。你可以随时修正。</p></div>
             <div className="share-tags"><span># {purpose.tag}</span><span># 选择要有依据</span><span># 先体验再押注</span></div>
-            <footer><b>职图有声</b><span>初步印象，等待你确认</span></footer>
+            <footer><b>职途有声</b><span>初步印象，等待你确认</span></footer>
           </article>
           <article className="state-panel">
             <div className="panel-title"><div><span>这些判断说得像你吗？</span><small>逐条确认可以帮助 AI 修正对你的理解</small></div><b>请确认</b></div>

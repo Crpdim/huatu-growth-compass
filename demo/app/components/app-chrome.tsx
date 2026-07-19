@@ -41,7 +41,7 @@ export function AppChrome({
             <img src={`${basePath}/logo.png`} alt="" />
           </span>
           <span>
-            <strong>职图有声</strong>
+            <strong>职途有声</strong>
             <small>{isGrowthManagementApp ? "GROWTH MANAGER" : "GROWTH COMPASS"}</small>
           </span>
         </button>
