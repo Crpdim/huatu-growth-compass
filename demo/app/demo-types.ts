@@ -1,4 +1,5 @@
 export type Stage =
+  | "lifeGame"
   | "landing"
   | "purpose"
   | "quiz"

@@ -17,6 +17,7 @@ import { ManagementActionPages } from "./components/management-action-pages";
 import { ProgressPage } from "./components/progress-page";
 import { CompanionPage } from "./components/companion-page";
 import { ReviewPages } from "./components/review-pages";
+import { LifeGamePage } from "./components/life-game-page";
 import * as demoData from "./demo-data";
 
 const {
@@ -25,6 +26,7 @@ const {
   journeyDestinations,
   growthManagementStages,
   abilityDimensions,
+  profileContextDimensions,
   analysisSteps,
   authorizationSources,
   profileImportSteps,
@@ -50,7 +52,7 @@ export default function Home() {
   const executionChatRef = useRef<HTMLDivElement>(null);
   const companionChatRef = useRef<HTMLDivElement>(null);
   const launchTimerRef = useRef<number | null>(null);
-  const [stage, setStage] = useState<Stage>("landing");
+  const [stage, setStage] = useState<Stage>("lifeGame");
   const [isLaunching, setIsLaunching] = useState(false);
   const [furthestRank, setFurthestRank] = useState(0);
   const [selectedPurpose, setSelectedPurpose] = useState<PurposeId | null>(null);
@@ -424,7 +426,7 @@ export default function Home() {
     launchTimerRef.current = null;
     setIsLaunching(false);
     setFurthestRank(0);
-    setStage("landing");
+    setStage("lifeGame");
     setSelectedPurpose(null);
     setQuizIndex(0);
     setAnswers([]);
@@ -566,6 +568,19 @@ export default function Home() {
     visual.style.setProperty("--needle-angle", "14deg");
   }
 
+  if (stage === "lifeGame") {
+    return (
+      <LifeGamePage
+        basePath={basePath}
+        onExplorePlanning={() => setStage("landing")}
+        onCompleteProfile={() => {
+          setSelectedPurpose("steady");
+          setStage("profile");
+        }}
+      />
+    );
+  }
+
   return (
     <main className={`app-shell stage-${stage} ${isGrowthManagementApp ? "app-mode-management" : "app-mode-compass"}`}>
       <AppChrome
@@ -627,6 +642,7 @@ export default function Home() {
         onSetAnalysisStep={setAnalysisStep}
         answeredCount={answers.filter((answer) => answer >= 0).length}
         abilityDimensions={abilityDimensions}
+        profileContextDimensions={profileContextDimensions}
         radarPoints={radarPoints}
         activeDimension={activeDimension}
         onSetActiveDimension={setActiveDimension}

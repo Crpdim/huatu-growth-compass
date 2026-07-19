@@ -18,6 +18,9 @@ const featureUrls = [
   new URL("../app/components/progress-page.tsx", import.meta.url),
   new URL("../app/components/companion-page.tsx", import.meta.url),
   new URL("../app/components/review-pages.tsx", import.meta.url),
+  new URL("../app/components/life-game-page.tsx", import.meta.url),
+  new URL("../public/life-game/index.html", import.meta.url),
+  new URL("../public/life-game/script.js", import.meta.url),
 ];
 
 test("contains the complete Growth Compass demo journey", async () => {
@@ -32,6 +35,9 @@ test("contains the complete Growth Compass demo journey", async () => {
     "寻找重复偏好",
     "这些判断说得像你吗",
     "让 AI 多了解你一点",
+    "健康情况（只确认是否受限）",
+    "家庭支持与限制",
+    "只记录影响路径可行性的条件",
     "你对未来生活有什么想法",
     "可选授权",
     "Bilibili",
@@ -41,13 +47,13 @@ test("contains the complete Growth Compass demo journey", async () => {
     "用这些信息补全画像",
     "AI 会建立任务画像",
     "职途初鉴",
-    "我的能力雷达",
+    "我的八维成长画像",
     "AI 正在补全任务画像",
     "同步授权数据",
     "检索职业路径资料库",
-    "初评分数会随体验和真实反馈更新",
-    "性格4.5",
-    "压力应对",
+    "六项能力会随任务证据更新",
+    "性格适配4.5",
+    "抗压与情绪",
     "考公方向好像更匹配",
     "看看相似的人怎么走",
     "同路人的今天",
@@ -86,9 +92,13 @@ test("contains the complete Growth Compass demo journey", async () => {
     "你问一个问题，我回答一个问题",
     "我的能力怎样",
     "正在查找已确认画像与授权资料",
-    "这是你当前的六维能力画像",
-    "家庭约束",
-    "行为日志",
+    "这是你当前的八维成长画像",
+    "六项能力使用 0–5 分",
+    "健康情况",
+    "家庭情况",
+    "支持度 − 约束度",
+    "家庭支持较强，但需考虑异地限制",
+    "条件项 · 不计分",
     "帮我安排一下任务看看我适不适合考公",
     "先用 4 个小任务验证你是否适合考公",
     "我确认了想去税务局",
@@ -136,6 +146,12 @@ test("contains the complete Growth Compass demo journey", async () => {
     "先规划生活本身",
     "四周公考基础体验计划",
     "考公仍是阶段性探索",
+    "人生模拟器",
+    "没有人生目标？点击探索你的人生规划",
+    "模范公务员达成",
+    "补全任务画像 →",
+    "huatu:explore-planning",
+    "huatu:life-game-complete",
   ]) {
     assert.match(page, new RegExp(content));
   }
@@ -163,6 +179,9 @@ test("contains the complete Growth Compass demo journey", async () => {
   assert.match(page, /aria-current=\{isCurrent \? "step"/);
   assert.match(page, /下一步：补充资料与授权/);
   assert.match(page, /只寻找重复出现的偏好/);
+  assert.match(page, /useState<Stage>\("lifeGame"\)/);
+  assert.match(page, /onExplorePlanning=\{\(\) => setStage\("landing"\)\}/);
+  assert.match(page, /setStage\("profile"\)/);
   assert.doesNotMatch(page, /阶段复盘|user_confirmation_required|needs_more_evidence|decision_status ·|information_gaps ·/);
   assert.doesNotMatch(page, /体验我的考公人生|真实样本未来体验/);
   assert.doesNotMatch(page, /stage === "simulation"|stage === "recalibration"/);
@@ -172,7 +191,7 @@ test("contains the complete Growth Compass demo journey", async () => {
   assert.doesNotMatch(page, /你刚完成了情境探索|它来自刚才的人生课题和情境回答/);
   assert.doesNotMatch(page, /当前画像生成进度/);
   assert.doesNotMatch(page, /1 个课题锚点 \+ 8 道人生情境/);
-  assert.doesNotMatch(page, /六维等权|结论边界|信息缺口：岗位体验/);
+  assert.doesNotMatch(page, /健康情况[^。；\n]*\/5|家庭情况[^。；\n]*\/5|结论边界|信息缺口：岗位体验/);
   assert.doesNotMatch(page, /确认加入待验证问题|生成一条画像候选/);
   assert.doesNotMatch(page, /资格审查通过率是多少|开始 10 分钟考公摸底/);
   assert.doesNotMatch(page, /你没有失败，只是第一步太大|下一阶段这样调整|开启下一阶段 · 开发中/);

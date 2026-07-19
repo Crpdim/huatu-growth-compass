@@ -11,19 +11,24 @@ export const journeyDestinations: Stage[] = ["result", "rolemodels"];
 export const growthManagementStages: Stage[] = ["importing", "execution", "progress", "executionReview", "companion", "companionReview", "stageSummary"];
 
 export const abilityDimensions = [
-  { label: "性格", value: 4.5, tag: "稳健有序", summary: "做选择时重视规则、确定性和责任边界，与多数公共服务岗位的工作方式较契合。", evidence: "稳定偏好、规则任务与现实取舍情境", confidence: "medium", referenceOnly: false, color: "#6757e5" },
+  { label: "性格适配", value: 4.5, tag: "稳健有序", summary: "做选择时重视规则、确定性和责任边界，与多数公共服务岗位的工作方式较契合。", evidence: "稳定偏好、规则任务与现实取舍情境", confidence: "medium", referenceOnly: false, color: "#6757e5" },
   { label: "专业能力", value: 2.4, tag: "基础起步", summary: "现有专业成果较少，距离考公准备要求仍需补充岗位筛选、行测和申论体验。", evidence: "资料填写：1 个课程项目，暂无备考经历", confidence: "medium", referenceOnly: false, color: "#8a72ed" },
   { label: "兴趣匹配度", value: 3.4, tag: "稳定导向", summary: "稳定、地域和生活节奏与你的期待较一致，具体岗位兴趣仍需真实体验。", evidence: "人生课题 + 稳定与地域偏好", confidence: "medium", referenceOnly: false, color: "#ff8a55" },
   { label: "学习与知识", value: 3.1, tag: "基础达标", summary: "本科专业基础处于中游，具备继续学习的起点，持续学习成果仍待补充。", evidence: "资料填写：本科大二、专业成绩中游", confidence: "medium", referenceOnly: false, color: "#d9b63e" },
-  { label: "压力应对", value: 4.8, tag: "韧性突出", summary: "计划受阻后倾向缩小任务、继续推进，对备考节奏和规则型任务有较好耐受。", evidence: "计划中断、风险比较与规则任务情境", confidence: "medium", referenceOnly: false, color: "#2d9f7f" },
+  { label: "抗压与情绪", value: 4.8, tag: "韧性突出", summary: "计划受阻后倾向缩小任务、继续推进，对备考节奏和规则型任务有较好耐受。", evidence: "计划中断、风险比较与规则任务情境", confidence: "medium", referenceOnly: false, color: "#2d9f7f" },
   { label: "沟通协作", value: 3.9, tag: "沟通稳妥", summary: "愿意说明顾虑并协调现实期待，具备公共服务场景需要的基础沟通意识。", evidence: "家庭期待协商情境 + 课程项目经历", confidence: "medium", referenceOnly: false, color: "#4778df" },
+];
+
+export const profileContextDimensions = [
+  { id: "health", label: "健康情况", status: "✓ 基础达标", tag: "条件项 · 不计分", summary: "目前未发现影响一般岗位选择的硬性限制；只有出现明确限制时，才提示相关高强度岗位可能受限。", evidence: "用户自评 + 已授权的活动与睡眠趋势", confidence: "low", tone: "positive" },
+  { id: "family", label: "家庭情况", status: "支持较强", tag: "支持度 − 约束度", summary: "家庭支持较强，但需考虑异地限制。它影响哪些路径可行，不参与能力评分。", evidence: "地域偏好、家庭期待与每周可投入时间", confidence: "medium", tone: "neutral" },
 ];
 
 export const analysisSteps = [
   { label: "读取手动资料", detail: "核对学校、年级、专业、经历与现实约束", output: "手动填写资料已完成核对" },
   { label: "同步授权数据", detail: "读取用户勾选的平台样例数据", output: "授权数据已转成可追溯的任务线索" },
   { label: "整理情境回答证据", detail: "提取人生课题与情境选择中的稳定线索", output: "只保留可追溯的选择依据" },
-  { label: "匹配六维评分口径", detail: "调用 6 个维度、16 个子项的预置评价规则", output: "答案、事实与评分标准完成对应" },
+  { label: "匹配八维建模口径", detail: "六项能力使用 0–5 分；健康与家庭按条件单独建模", output: "六项能力评分与两项现实条件完成对应" },
   { label: "检索职业路径资料库", detail: "查找公考 / 考编、企业求职与继续升学要求", output: "获得 3 类路径的通用能力参照" },
   { label: "交叉校验并生成画像", detail: "检查证据冲突、信息缺口和结论置信度", output: "低置信度结论已标记为待验证" },
 ];
@@ -355,6 +360,7 @@ export const nextStageOptions: { id: NextStageChoice; icon: string; title: strin
 ];
 
 export const stageRank: Record<Stage, number> = {
+  lifeGame: 0,
   landing: 0,
   purpose: 0,
   quiz: 0,

@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>人生模拟器入口</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body data-view="entry">
+    <main class="entry-screen">
+      <a class="planning-link" href="#" id="open-growth-planning">没有人生目标？点击探索你的人生规划-&gt;</a>
+      <div class="sky-shape sky-shape-a" aria-hidden="true"></div>
+      <div class="sky-shape sky-shape-b" aria-hidden="true"></div>
+      <div class="sky-shape sky-shape-c" aria-hidden="true"></div>
+      <div class="line-grid" aria-hidden="true"></div>
+
+      <section class="intro" aria-labelledby="page-title">
+        <div class="brand-lockup">
+          <span class="plumbob" aria-hidden="true"></span>
+          <span>人生模拟器</span>
+        </div>
+
+        <p class="save-slot">新存档 / 第 1 局</p>
+        <h1 id="page-title">准备好开启你的模拟人生了么？</h1>
+
+        <div class="life-grid" aria-label="人生路线">
+          <button class="life-button route-guoqi" type="button" data-life="国企人生" aria-pressed="false">
+            <span class="route-id">01</span>
+            <span class="route-label">国企人生</span>
+            <span class="route-gem" aria-hidden="true"></span>
+          </button>
+          <button class="life-button route-system" type="button" data-life="体制内人生" aria-pressed="false">
+            <span class="route-id">02</span>
+            <span class="route-label">体制内人生</span>
+            <span class="route-gem" aria-hidden="true"></span>
+          </button>
+          <button class="life-button route-tech" type="button" data-life="互联网人生" aria-pressed="false">
+            <span class="route-id">03</span>
+            <span class="route-label">互联网人生</span>
+            <span class="route-gem" aria-hidden="true"></span>
+          </button>
+          <button class="life-button route-global" type="button" data-life="外企人生" aria-pressed="false">
+            <span class="route-id">04</span>
+            <span class="route-label">外企人生</span>
+            <span class="route-gem" aria-hidden="true"></span>
+          </button>
+          <button class="life-button route-founder" type="button" data-life="创业人生" aria-pressed="false">
+            <span class="route-id">05</span>
+            <span class="route-label">创业人生</span>
+            <span class="route-gem" aria-hidden="true"></span>
+          </button>
+          <button class="life-button route-star" type="button" data-life="网红人生" aria-pressed="false">
+            <span class="route-id">06</span>
+            <span class="route-label">网红人生</span>
+            <span class="route-gem" aria-hidden="true"></span>
+          </button>
+        </div>
+
+        <p class="status-line" aria-live="polite">你的第一段人生正在闪闪发光。</p>
+      </section>
+
+      <figure class="cast-stage" aria-label="游戏角色群像">
+        <img src="./assets/sims-style-reference.png" alt="一组卡通角色聚在一起拍照、聊天和分享点心" />
+      </figure>
+    </main>
+
+    <main class="system-screen" aria-labelledby="system-title">
+      <div class="system-backdrop" aria-hidden="true">
+        <img src="./assets/system-life-bg.png" alt="" />
+      </div>
+      <div class="system-overlay" aria-hidden="true"></div>
+
+      <div class="system-shell">
+        <header class="system-header">
+          <button class="back-button" type="button" data-action="back-to-entry">← 返回路线</button>
+          <p class="system-badge">体制内人生 · 身份建档</p>
+        </header>
+
+        <section class="system-stage">
+          <div class="system-copy">
+            <p class="system-eyebrow">体制内人生</p>
+            <h1 id="system-title">先填好你的身份档案</h1>
+            <p class="system-lead">
+              先把职业、学历、院校层次和专业填清楚，后面的单位、考编和成长路线会跟着变。
+            </p>
+
+            <div class="system-notes" aria-label="开局提示">
+              <span>职业决定起点</span>
+              <span>学历影响路径</span>
+              <span>专业决定侧门</span>
+            </div>
+          </div>
+
+          <form class="identity-card" id="identity-form">
+            <div class="identity-grid">
+              <label class="field field-full">
+                <span class="field-label">人物姓名</span>
+                <input
+                  id="character-name"
+                  name="characterName"
+                  type="text"
+                  placeholder="给这段人生起一个名字"
+                  autocomplete="off"
+                />
+              </label>
+
+              <label class="field">
+                <span class="field-label">职业</span>
+                <select name="occupation" id="occupation">
+                  <option value="" selected disabled>请选择职业</option>
+                  <option value="老师">老师</option>
+                  <option value="医生">医生</option>
+                  <option value="公务员">公务员</option>
+                  <option value="事业单位">事业单位</option>
+                </select>
+              </label>
+
+              <label class="field">
+                <span class="field-label">学历</span>
+                <select name="education" id="education">
+                  <option value="" selected disabled>请选择学历</option>
+                  <option value="专科">专科</option>
+                  <option value="本科">本科</option>
+                  <option value="研究生">研究生</option>
+                  <option value="博士">博士</option>
+                </select>
+              </label>
+
+              <label class="field">
+                <span class="field-label">毕业院校层次</span>
+                <select name="schoolTier" id="school-tier">
+                  <option value="" selected disabled>请选择院校层次</option>
+                  <option value="top2">top2</option>
+                  <option value="C9">C9</option>
+                  <option value="QS前30">QS前30</option>
+                  <option value="985">985</option>
+                  <option value="211">211</option>
+                  <option value="其他">其他</option>
+                </select>
+              </label>
+
+              <label class="field">
+                <span class="field-label">家庭年收入</span>
+                <select name="familyIncome" id="family-income">
+                  <option value="" selected disabled>请选择家庭年收入</option>
+                  <option value="10万以下">10万以下</option>
+                  <option value="10万-30万">10万-30万</option>
+                  <option value="30万-50万">30万-50万</option>
+                  <option value="50万-100万">50万-100万</option>
+                  <option value="100万以上">100万以上</option>
+                </select>
+              </label>
+
+              <label class="field field-full">
+                <span class="field-label">专业</span>
+                <input
+                  id="major"
+                  name="major"
+                  type="text"
+                  placeholder="例如：汉语言文学、临床医学、行政管理"
+                  autocomplete="off"
+                />
+              </label>
+            </div>
+
+            <div class="identity-preview" aria-live="polite">
+              <p class="preview-title">身份预览</p>
+              <dl class="summary-grid">
+                <div>
+                  <dt>人物姓名</dt>
+                  <dd data-summary="characterName">未填写</dd>
+                </div>
+                <div>
+                  <dt>职业</dt>
+                  <dd data-summary="occupation">未选择</dd>
+                </div>
+                <div>
+                  <dt>学历</dt>
+                  <dd data-summary="education">未选择</dd>
+                </div>
+                <div>
+                  <dt>院校层次</dt>
+                  <dd data-summary="schoolTier">未选择</dd>
+                </div>
+                <div>
+                  <dt>家庭年收入</dt>
+                  <dd data-summary="familyIncome">未选择</dd>
+                </div>
+                <div>
+                  <dt>专业</dt>
+                  <dd data-summary="major">未填写</dd>
+                </div>
+              </dl>
+            </div>
+
+            <div class="form-actions">
+              <button class="secondary-button" type="button" data-action="back-to-entry">返回路线</button>
+              <button class="primary-button" type="submit">进入体制内人生</button>
+            </div>
+
+            <p class="identity-status" id="identity-status" aria-live="polite">请先完成身份填写。</p>
+          </form>
+        </section>
+      </div>
+    </main>
+
+    <main class="dorm-screen" aria-labelledby="dorm-title">
+      <div class="dorm-backdrop" aria-hidden="true">
+        <img src="./assets/dorm-chat-bg.png" alt="" />
+      </div>
+      <div class="dorm-overlay" aria-hidden="true"></div>
+
+      <div class="dorm-shell">
+        <header class="dorm-header">
+          <button class="back-button" type="button" data-action="back-to-system">← 返回身份</button>
+          <p class="dorm-badge">毕业前夜 · 舍友夜谈</p>
+        </header>
+
+        <section class="dorm-stage">
+          <div class="dorm-story">
+            <p class="dorm-eyebrow">宿舍熄灯后</p>
+            <h1 id="dorm-title">舍友突然开始聊起未来</h1>
+            <p class="dorm-lead">
+              临近毕业，兄弟们围着床沿说真心话。接下来请如实回答每一个问题。
+            </p>
+
+          </div>
+
+          <section class="chat-panel">
+            <div class="chat-feed" id="chat-feed" aria-live="polite"></div>
+
+            <div class="question-block" id="question-block">
+              <p class="question-step" id="question-step"></p>
+              <div class="question-bubble">
+                <p class="question-text" id="question-text"></p>
+              </div>
+              <div class="answer-list" id="answer-list"></div>
+
+              <label class="other-answer hidden" id="other-answer">
+                <span>其他内容</span>
+                <input
+                  id="other-answer-input"
+                  type="text"
+                  placeholder="请填写你的真实回答"
+                  autocomplete="off"
+                />
+              </label>
+
+              <div class="question-actions">
+                <button class="secondary-button" type="button" id="back-question">返回上一题</button>
+                <button class="primary-button" type="button" id="answer-next">如实回答</button>
+              </div>
+
+              <p class="dorm-status" id="dorm-status" aria-live="polite"></p>
+            </div>
+
+            <div class="dorm-complete hidden" id="dorm-complete">
+              <p class="complete-title">夜聊结束</p>
+              <p class="complete-summary" id="complete-summary"></p>
+              <div class="transition-cta hidden" id="transition-cta">
+                <p class="transition-copy">这一幕已经结束了，点一下继续下一段人生。</p>
+                <button class="primary-button" type="button" id="next-scene">跳转到下一幕</button>
+              </div>
+              <div class="final-profile hidden" id="final-profile" aria-live="polite">
+                <p class="final-profile-title">人物基本信息</p>
+                <dl class="summary-grid final-summary-grid">
+                  <div>
+                    <dt>人物姓名</dt>
+                    <dd data-final-summary="characterName">未填写</dd>
+                  </div>
+                  <div>
+                    <dt>职业</dt>
+                    <dd data-final-summary="occupation">未选择</dd>
+                  </div>
+                  <div>
+                    <dt>学历</dt>
+                    <dd data-final-summary="education">未选择</dd>
+                  </div>
+                  <div>
+                    <dt>院校层次</dt>
+                    <dd data-final-summary="schoolTier">未选择</dd>
+                  </div>
+                  <div>
+                    <dt>家庭年收入</dt>
+                    <dd data-final-summary="familyIncome">未选择</dd>
+                  </div>
+                  <div>
+                    <dt>专业</dt>
+                    <dd data-final-summary="major">未填写</dd>
+                  </div>
+                </dl>
+                <div class="growth-profile-cta">
+                  <div>
+                    <strong>把这段人生选择交给 AI</strong>
+                    <span>补充真实信息后，AI 会继续建立你的任务画像。</span>
+                  </div>
+                  <button class="primary-button" type="button" id="complete-to-profile">补全任务画像 →</button>
+                </div>
+              </div>
+              <div class="dream-cta">
+                <button
+                  class="secondary-button"
+                  type="button"
+                  id="dream-roadmap"
+                  aria-controls="dream-guide"
+                  aria-expanded="false"
+                >
+                  梦想照进现实
+                </button>
+                <p class="dream-cta-copy">现在的我该怎么一步一步接近这个结局</p>
+              </div>
+              <div class="dream-guide hidden" id="dream-guide" aria-live="polite"></div>
+              <div class="question-actions">
+                <button class="secondary-button" type="button" id="redo-chat">回到上一题</button>
+                <button class="primary-button" type="button" data-action="back-to-system">回到身份</button>
+              </div>
+            </div>
+          </section>
+        </section>
+      </div>
+    </main>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
