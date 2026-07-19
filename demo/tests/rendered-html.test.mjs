@@ -269,6 +269,10 @@ test("lets the user add, edit, delete and AI-adjust tasks without losing shared 
   assert.match(progress, /保存修改/);
   assert.match(progress, /删除“\$\{task\.title\}”/);
   assert.match(progress, /className="task-row-ai"/);
+  assert.match(progress, /className="task-ai-suggestions"/);
+  assert.match(progress, /className="task-ai-composer"/);
+  assert.match(progress, /submitAiMessage/);
+  assert.match(progress, /输入你想让 AI 如何调整这项任务/);
   assert.match(progress, /拆成小任务/);
   assert.match(progress, /应用这份拆解/);
   assert.match(progress, /保存链接到任务/);
@@ -279,6 +283,7 @@ test("lets the user add, edit, delete and AI-adjust tasks without losing shared 
   assert.match(management, /已添加官方入口/);
   assert.match(globalStyles, /\.task-manager-row/);
   assert.match(globalStyles, /\.task-ai-dialog/);
+  assert.match(globalStyles, /\.task-ai-composer/);
   assert.match(globalStyles, /\.progress-spectrum i/);
 });
 

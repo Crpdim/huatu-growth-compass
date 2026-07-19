@@ -22,7 +22,8 @@ type ProgressPageProps = {
   onNavigate: (stage: Stage) => void;
 };
 
-type AiResult = "idle" | "thinking" | "split" | "link";
+type AiResult = "idle" | "thinking" | "split" | "link" | "reply";
+type AiMessage = { id: number; role: "user"; text: string };
 
 const priorityOrder: Record<string, number> = { "高优先": 0, "中优先": 1, "低优先": 2 };
 const priorityOptions = ["高优先", "中优先", "低优先"];
@@ -62,7 +63,9 @@ export function ProgressPage({ progress, progressClass, tasks, taskCredits, task
   const [editTask, setEditTask] = useState<TaskDraft>(emptyDraft);
   const [activeAiTaskId, setActiveAiTaskId] = useState<string | null>(null);
   const [aiResult, setAiResult] = useState<AiResult>("idle");
-  const [requestedAiAction, setRequestedAiAction] = useState<"split" | "link">("split");
+  const [aiMessages, setAiMessages] = useState<AiMessage[]>([]);
+  const [aiInput, setAiInput] = useState("");
+  const [aiReply, setAiReply] = useState("");
 
   const taskRows = useMemo(() => tasks.map((task) => ({ ...task, credit: taskCredits[task.id] ?? 0 })), [tasks, taskCredits]);
   const completed = useMemo(() => taskRows.filter((task) => task.credit >= task.weight), [taskRows]);
@@ -108,17 +111,38 @@ export function ProgressPage({ progress, progressClass, tasks, taskCredits, task
 
   function openTaskAi(taskId: string, action?: "split" | "link") {
     setActiveAiTaskId(taskId);
+    setAiMessages([]);
+    setAiInput("");
+    setAiReply("");
     setAiResult(action ? "thinking" : "idle");
     if (action) {
-      setRequestedAiAction(action);
+      setAiMessages([{ id: Date.now(), role: "user", text: action === "link" ? "帮我找国考官方报名链接" : "把这个任务拆成容易开始的小步骤" }]);
       window.setTimeout(() => setAiResult(action), 650);
     }
   }
 
-  function runAiAction(action: "split" | "link") {
-    setRequestedAiAction(action);
+  function runAiPrompt(prompt: string, suggestedAction?: "split" | "link" | "reply") {
+    const message = prompt.trim();
+    if (!message || aiResult === "thinking") return;
+
+    const action = suggestedAction
+      ?? (/链接|网址|官网|报名/.test(message) ? "link" : /拆|步骤|小任务/.test(message) ? "split" : "reply");
+
+    setAiMessages((current) => [...current, { id: Date.now(), role: "user", text: message }]);
+    setAiInput("");
+    setAiReply("");
     setAiResult("thinking");
-    window.setTimeout(() => setAiResult(action), 650);
+    window.setTimeout(() => {
+      if (action === "reply") {
+        setAiReply(`围绕“${activeAiTask?.title ?? "这项任务"}”，建议先做一个 15 分钟内能完成的最小步骤，再把结果记回任务。如果你希望我直接调整，可以继续告诉我截止时间、完成标准，或者让我拆解任务、查找资料。`);
+      }
+      setAiResult(action);
+    }, 650);
+  }
+
+  function submitAiMessage(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    runAiPrompt(aiInput);
   }
 
   function applySplit() {
@@ -204,14 +228,16 @@ export function ProgressPage({ progress, progressClass, tasks, taskCredits, task
     {activeAiTask && <div className="task-ai-backdrop" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) setActiveAiTaskId(null); }}>
       <section className="task-ai-dialog" role="dialog" aria-modal="true" aria-label={`AI 调整任务：${activeAiTask.title}`}>
         <header><div><span>AI</span><div><small>AI 任务助手</small><h3>{activeAiTask.title}</h3></div></div><button onClick={() => setActiveAiTaskId(null)} aria-label="关闭 AI 任务助手">×</button></header>
+        <div className="task-ai-suggestions" aria-label="AI 快捷建议"><span>试试问</span><button disabled={aiResult === "thinking"} onClick={() => runAiPrompt("把这个任务拆成容易开始的小步骤", "split")}>拆成小任务</button><button disabled={aiResult === "thinking"} onClick={() => runAiPrompt("帮我找完成这项任务需要的官方网址", "link")}>查找官方网址</button><button disabled={aiResult === "thinking"} onClick={() => runAiPrompt("我现在应该先做什么？", "reply")}>我先做什么</button></div>
         <div className="task-ai-stream" aria-live="polite">
-          <div className="task-ai-message is-agent"><span>AI</span><p>我只处理这一项任务。你想把它拆小，还是查找完成任务需要的官方网址？</p></div>
-          {aiResult !== "idle" && <div className="task-ai-message is-user"><span>你</span><p>{requestedAiAction === "link" ? "帮我找国考官方报名链接" : "把这个任务拆成容易开始的小步骤"}</p></div>}
+          <div className="task-ai-message is-agent"><span>AI</span><p>我只处理这一项任务。你可以直接说想怎么调整，也可以选择上方的建议。</p></div>
+          {aiMessages.map((message) => <div className="task-ai-message is-user" key={message.id}><span>你</span><p>{message.text}</p></div>)}
           {aiResult === "thinking" && <div className="task-ai-thinking"><span>AI</span><p>正在读取任务要求并核验来源<i /><i /><i /></p></div>}
           {aiResult === "split" && <div className="task-ai-result"><span>拆解建议</span><h4>保留原任务，拆成 3 个可勾选步骤</h4><ol>{splitSuggestions(activeAiTask).map((item) => <li key={item}>{item}</li>)}</ol><button onClick={applySplit} disabled={Boolean(activeAiTask.subtasks?.length)}>{activeAiTask.subtasks?.length ? "已应用到任务" : "应用这份拆解"}</button></div>}
           {aiResult === "link" && <div className="task-ai-result is-link"><span>已核验官方来源</span><h4>{officialRegistrationLink.title}</h4><p>来源：{officialRegistrationLink.source}。正式使用时仍需按当年公告核对开放时间。</p><code>{officialRegistrationLink.url}</code><a href={officialRegistrationLink.url} target="_blank" rel="noreferrer">打开官方报名专题 ↗</a><button onClick={() => onAttachLink(activeAiTask.id, officialRegistrationLink)} disabled={Boolean(activeAiTask.link)}>{activeAiTask.link ? "已保存到任务" : "保存链接到任务"}</button></div>}
+          {aiResult === "reply" && <div className="task-ai-message is-agent"><span>AI</span><p>{aiReply}</p></div>}
         </div>
-        <footer><button disabled={aiResult === "thinking"} onClick={() => runAiAction("split")}>拆成小任务</button><button disabled={aiResult === "thinking"} onClick={() => runAiAction("link")}>查找官方网址</button></footer>
+        <footer><form className="task-ai-composer" onSubmit={submitAiMessage}><input autoFocus value={aiInput} onChange={(event) => setAiInput(event.target.value)} placeholder="输入你想让 AI 如何调整这项任务" aria-label="给 AI 任务助手发送消息" /><button type="submit" disabled={aiResult === "thinking" || !aiInput.trim()} aria-label="发送消息">↑</button></form></footer>
       </section>
     </div>}
   </section>;
