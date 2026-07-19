@@ -228,7 +228,6 @@ export function ProgressPage({ progress, progressClass, tasks, taskCredits, task
     {activeAiTask && <div className="task-ai-backdrop" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) setActiveAiTaskId(null); }}>
       <section className="task-ai-dialog" role="dialog" aria-modal="true" aria-label={`AI 调整任务：${activeAiTask.title}`}>
         <header><div><span>AI</span><div><small>AI 任务助手</small><h3>{activeAiTask.title}</h3></div></div><button onClick={() => setActiveAiTaskId(null)} aria-label="关闭 AI 任务助手">×</button></header>
-        <div className="task-ai-suggestions" aria-label="AI 快捷建议"><span>试试问</span><button disabled={aiResult === "thinking"} onClick={() => runAiPrompt("把这个任务拆成容易开始的小步骤", "split")}>拆成小任务</button><button disabled={aiResult === "thinking"} onClick={() => runAiPrompt("帮我找完成这项任务需要的官方网址", "link")}>查找官方网址</button><button disabled={aiResult === "thinking"} onClick={() => runAiPrompt("我现在应该先做什么？", "reply")}>我先做什么</button></div>
         <div className="task-ai-stream" aria-live="polite">
           <div className="task-ai-message is-agent"><span>AI</span><p>我只处理这一项任务。你可以直接说想怎么调整，也可以选择上方的建议。</p></div>
           {aiMessages.map((message) => <div className="task-ai-message is-user" key={message.id}><span>你</span><p>{message.text}</p></div>)}
@@ -237,7 +236,7 @@ export function ProgressPage({ progress, progressClass, tasks, taskCredits, task
           {aiResult === "link" && <div className="task-ai-result is-link"><span>已核验官方来源</span><h4>{officialRegistrationLink.title}</h4><p>来源：{officialRegistrationLink.source}。正式使用时仍需按当年公告核对开放时间。</p><code>{officialRegistrationLink.url}</code><a href={officialRegistrationLink.url} target="_blank" rel="noreferrer">打开官方报名专题 ↗</a><button onClick={() => onAttachLink(activeAiTask.id, officialRegistrationLink)} disabled={Boolean(activeAiTask.link)}>{activeAiTask.link ? "已保存到任务" : "保存链接到任务"}</button></div>}
           {aiResult === "reply" && <div className="task-ai-message is-agent"><span>AI</span><p>{aiReply}</p></div>}
         </div>
-        <footer><form className="task-ai-composer" onSubmit={submitAiMessage}><input autoFocus value={aiInput} onChange={(event) => setAiInput(event.target.value)} placeholder="输入你想让 AI 如何调整这项任务" aria-label="给 AI 任务助手发送消息" /><button type="submit" disabled={aiResult === "thinking" || !aiInput.trim()} aria-label="发送消息">↑</button></form></footer>
+        <footer><div className="task-ai-suggestions" aria-label="AI 快捷建议"><span>试试问</span><button disabled={aiResult === "thinking"} onClick={() => runAiPrompt("把这个任务拆成容易开始的小步骤", "split")}>拆成小任务</button><button disabled={aiResult === "thinking"} onClick={() => runAiPrompt("帮我找完成这项任务需要的官方网址", "link")}>查找官方网址</button><button disabled={aiResult === "thinking"} onClick={() => runAiPrompt("我现在应该先做什么？", "reply")}>我先做什么</button></div><form className="task-ai-composer" onSubmit={submitAiMessage}><input autoFocus value={aiInput} onChange={(event) => setAiInput(event.target.value)} placeholder="输入你想让 AI 如何调整这项任务" aria-label="给 AI 任务助手发送消息" /><button type="submit" disabled={aiResult === "thinking" || !aiInput.trim()} aria-label="发送消息">↑</button></form></footer>
       </section>
     </div>}
   </section>;

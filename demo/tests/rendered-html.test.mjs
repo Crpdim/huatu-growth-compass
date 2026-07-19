@@ -270,6 +270,7 @@ test("lets the user add, edit, delete and AI-adjust tasks without losing shared 
   assert.match(progress, /删除“\$\{task\.title\}”/);
   assert.match(progress, /className="task-row-ai"/);
   assert.match(progress, /className="task-ai-suggestions"/);
+  assert.match(progress, /<footer><div className="task-ai-suggestions"/);
   assert.match(progress, /className="task-ai-composer"/);
   assert.match(progress, /submitAiMessage/);
   assert.match(progress, /输入你想让 AI 如何调整这项任务/);
