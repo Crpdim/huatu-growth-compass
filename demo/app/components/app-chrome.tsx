@@ -33,7 +33,7 @@ export function AppChrome({
         <button
           className="brand"
           onClick={isGrowthManagementApp ? onReturnToCompass : onReset}
-          aria-label={isGrowthManagementApp ? "返回成长罗盘方向探索" : "返回首页"}
+          aria-label={isGrowthManagementApp ? "返回方向探索" : "返回首页"}
         >
           <span className="brand-mark">
             {/* 静态导出需保留仓库 basePath，避免图片优化路由影响 GitHub Pages。 */}
@@ -41,7 +41,7 @@ export function AppChrome({
             <img src={`${basePath}/logo.png`} alt="" />
           </span>
           <span>
-            <strong>{isGrowthManagementApp ? "华图成长管理" : "华图成长罗盘"}</strong>
+            <strong>职图有声</strong>
             <small>{isGrowthManagementApp ? "GROWTH MANAGER" : "GROWTH COMPASS"}</small>
           </span>
         </button>

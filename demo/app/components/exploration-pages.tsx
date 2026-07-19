@@ -71,7 +71,7 @@ export function ExplorationPages({
           <p className="landing-lead">大家好像都在往前走，而你还在考研、公考和实习之间反复横跳。人生答案可以慢慢来，先花 3 分钟看看哪种未来值得体验。</p>
           <div className="landing-actions">
             <button className={`primary-button ${isLaunching ? "is-launching" : ""}`} onClick={onStartJourney} aria-busy={isLaunching}>找到我最想解决的人生课题 <span>→</span></button>
-            <button className="ghost-button landing-management-entry" onClick={onEnterManagement}>直接进入成长管理 <span>→</span></button>
+            <button className="ghost-button landing-management-entry" onClick={onEnterManagement}>直接进入职图有声 <span>→</span></button>
           </div>
           <div className="principle-row">
             <div><b>01</b><span>选择由你确认</span></div>

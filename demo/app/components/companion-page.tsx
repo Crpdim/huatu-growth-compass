@@ -32,7 +32,7 @@ export function CompanionPage(props: CompanionPageProps) {
     <div className="companion-heading"><div><span className="section-kicker">AI 伴学工作台</span><h2>计划不只写在纸上，<br />AI 陪你一起完成</h2></div><div className="companion-context"><span>本阶段主题：考公认知与入门验证</span><b>大二 · 第 2 周</b><small>Demo 演示考公，产品机制支持其他成长方向</small></div></div>
     <div className="companion-workspace">
       <article className="companion-chat-panel">
-        <header><div><span className="agent-avatar">AI</span><div><small>成长罗盘 Agent</small><h3>林小北的学习对话</h3></div></div><span className="agent-online">本周可用 6 小时</span></header>
+        <header><div><span className="agent-avatar">AI</span><div><small>职图有声 Agent</small><h3>林小北的学习对话</h3></div></div><span className="agent-online">本周可用 6 小时</span></header>
         <div className="companion-chat-stream" ref={companionChatRef} aria-live="polite">
           <div className="chat-day-divider"><span>周一 · 下一阶段开始</span></div>
           <div className="execution-message agent"><span>AI</span><p>上周我们确认了一个可报岗位，也了解了考试结构。这周先体验一次真实学习内容，看看你对备考过程的感受。</p></div>

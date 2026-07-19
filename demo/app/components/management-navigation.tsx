@@ -17,7 +17,7 @@ const items: { label: string; note: string; stages: Stage[]; destination: Stage 
 
 export function ManagementNavigation({ stage, conversationStage, reviewStage, stageSummaryReady, onNavigate }: ManagementNavigationProps) {
   if (stage === "importing") return null;
-  return <nav className="management-navigation" aria-label="成长管理功能">
+  return <nav className="management-navigation" aria-label="职图有声任务功能">
     <div className="management-navigation-inner">
       <div className="management-stage-context"><span>当前方向</span><b>考公探索</b><small>阶段性规划</small></div>
       <div className="management-navigation-tabs">

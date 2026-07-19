@@ -68,7 +68,7 @@ test("contains the complete Growth Compass demo journey", async () => {
     "看看相似的人怎么走",
     "同路人的今天",
     "从山西二本到北京朝阳区",
-    "完成方向探索，进入成长管理",
+    "完成方向探索，进入职图有声",
     "这个方向正在建设中",
     "三条发展路径",
     "未来体验 Agent",
@@ -76,8 +76,8 @@ test("contains the complete Growth Compass demo journey", async () => {
     "正在结合你的回答重新组织问题",
     "正在查询相关资料",
     "对话线索已更新",
-    "完成探索，导入成长管理",
-    "华图成长管理",
+    "完成探索，导入职图有声",
+    "职图有声",
     "GROWTH MANAGER",
     "方向探索已完成",
     "任务与伴学空间",
@@ -85,9 +85,9 @@ test("contains the complete Growth Compass demo journey", async () => {
     "正在导入用户画像",
     "读取画像 v1 与授权范围",
     "生成 Todo List 与复盘节点",
-    "进入成长管理",
+    "进入职图有声",
     "你好，林小北",
-    "直接进入成长管理",
+    "直接进入职图有声",
     "方向与本周计划",
     "华图课程答疑",
     "当前任务进展",
@@ -223,6 +223,8 @@ test("opens with a campaign homepage and keeps the life game as the experience e
   assert.match(promo, /product-demo\.mp4/);
   assert.match(promo, /experience=life-game/);
   assert.match(promo, /onExperience\(\)/);
+  assert.match(promo, /src=\{`\$\{basePath\}\/logo\.png`\}/);
+  assert.doesNotMatch(promo, /LIVE|先体验，再选择|把人生选择变成一次可以亲自参与的模拟/);
   assert.match(globalStyles, /\.promo-video-frame/);
   assert.match(globalStyles, /prefers-reduced-motion/);
 });
@@ -230,7 +232,7 @@ test("opens with a campaign homepage and keeps the life game as the experience e
 test("uses finished product metadata instead of starter preview metadata", async () => {
   const layout = await readFile(layoutUrl, "utf8");
 
-  assert.match(layout, /华图成长罗盘/);
+  assert.match(layout, /职图有声/);
   assert.doesNotMatch(layout, /Starter Project|codex-preview|_sites-preview/);
 });
 
