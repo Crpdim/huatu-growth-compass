@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useState, type FormEvent, type RefObject } from "react";
-import type { Stage } from "../demo-types";
+import type { ExecutionTask, Stage } from "../demo-types";
 import { AgentMessage } from "./agent-message";
 
 type AuthorizationSource = { id: string; name: string };
-type ExecutionTask = { title: string; category: string; weight: number; deadline: string; priority: string; durationMinutes: number; deadlineOrder: number; unlocks: number; criteria: string };
 type ExecutionObstacle = { label: string; adjustedTitle: string; change: string; deadline: string; criteria: string; signal: string; review: string };
 type AgentSessionId = "planning" | "learning" | "progress" | "review";
 type ReminderKind = "registration" | "deadline" | "wellbeing";
@@ -54,12 +53,12 @@ type ManagementActionPagesProps = {
   executionProgress: number;
   executionProgressClass: string;
   executionTasks: ExecutionTask[];
-  executionTaskDone: boolean[];
-  taskManagerActions: Record<number, "rescheduled" | "abandoned">;
+  executionTaskDone: Record<string, boolean>;
+  taskManagerActions: Record<string, "rescheduled" | "abandoned">;
   executionPhase: number;
   activeExecutionObstacle: ExecutionObstacle;
   completedExecutionTasks: ExecutionTask[];
-  onToggleExecutionTask: (index: number) => void;
+  onToggleExecutionTask: (taskId: string) => void;
   onGoToStage: (stage: Stage) => void;
   executionChatRef: RefObject<HTMLDivElement | null>;
   onSetExecutionPhase: (phase: number) => void;
@@ -67,12 +66,10 @@ type ManagementActionPagesProps = {
   nextPlanPhase: 0 | 1 | 2;
   nextPlanStep: number;
   onStartNextPlan: () => void;
-  agentHandoffPrompt: string;
-  onConsumeAgentHandoff: () => void;
 };
 
 export function ManagementActionPages(props: ManagementActionPagesProps) {
-  const { stage, selectedAuthorizationSources, profileImportSteps, profileImportStep, executionProgress, executionProgressClass, executionTasks, executionTaskDone, taskManagerActions, executionPhase, activeExecutionObstacle, completedExecutionTasks, onToggleExecutionTask, onGoToStage, executionChatRef, onSetExecutionPhase, onRestartPlanningDemo, nextPlanPhase, nextPlanStep, onStartNextPlan, agentHandoffPrompt, onConsumeAgentHandoff } = props;
+  const { stage, selectedAuthorizationSources, profileImportSteps, profileImportStep, executionProgress, executionProgressClass, executionTasks, executionTaskDone, taskManagerActions, executionPhase, activeExecutionObstacle, completedExecutionTasks, onToggleExecutionTask, onGoToStage, executionChatRef, onSetExecutionPhase, onRestartPlanningDemo, nextPlanPhase, nextPlanStep, onStartNextPlan } = props;
   const [planningStep, setPlanningStep] = useState(0);
   const [stressResponse, setStressResponse] = useState<string | null>(null);
   const [activeSession, setActiveSession] = useState<AgentSessionId>("planning");
@@ -85,19 +82,20 @@ export function ManagementActionPages(props: ManagementActionPagesProps) {
   const [reminderAction, setReminderAction] = useState("");
   const alignmentRequirements = [
     { label: "方向由用户确认", met: true },
-    { label: "核对岗位资格", met: executionTaskDone[0] },
-    { label: "了解考试结构", met: executionTaskDone[1] },
-    { label: "完成学习体验", met: executionTaskDone[2] },
-    { label: "记录真实代价", met: executionTaskDone[3] },
+    { label: "核对岗位资格", met: Boolean(executionTaskDone["position-check"]) },
+    { label: "了解考试结构", met: Boolean(executionTaskDone["exam-structure"]) },
+    { label: "完成学习体验", met: Boolean(executionTaskDone["learning-trial"]) },
+    { label: "记录真实代价", met: Boolean(executionTaskDone["cost-reflection"]) },
   ];
   const alignedRequirementCount = alignmentRequirements.filter((item) => item.met).length;
-  const minimumEvidenceReady = executionTaskDone[0] && executionTaskDone[1];
+  const minimumEvidenceReady = Boolean(executionTaskDone["position-check"] && executionTaskDone["exam-structure"]);
   const currentConversation = sessionConversations[activeSession];
   const composerText = currentConversation.composerText;
   const sentQuestion = currentConversation.sentQuestion;
   const composerReply = currentConversation.reply;
   const composerThinking = currentConversation.thinking;
-  const nextExecutionTask = executionTasks.find((_, index) => !executionTaskDone[index] && taskManagerActions[index] !== "abandoned");
+  const totalTaskWeight = executionTasks.reduce((total, task) => total + task.weight, 0);
+  const nextExecutionTask = executionTasks.find((task) => !executionTaskDone[task.id] && taskManagerActions[task.id] !== "abandoned");
   const sessionIcon: Record<AgentSessionId, string> = { planning: "规", learning: "学", progress: "进", review: "回" };
   const sessionContext: Record<AgentSessionId, string> = { planning: "规划与行动", learning: "学习答疑", progress: "进展查询", review: "复盘与校准" };
   const planningPrompts = planningStep === 0
@@ -116,20 +114,6 @@ export function ManagementActionPages(props: ManagementActionPagesProps) {
     review: ["这周完成得怎么样", "为什么没有完成", "下周怎么调整"],
   };
   const planningIsBusy = activeSession === "planning" && [1, 3, 5, 6, 8].includes(planningStep);
-
-  useEffect(() => {
-    if (stage !== "execution" || !agentHandoffPrompt) return;
-    const timer = window.setTimeout(() => {
-      setActiveSession("planning");
-      setReminderCenterOpen(false);
-      setSessionConversations((current) => ({
-        ...current,
-        planning: { ...current.planning, composerText: agentHandoffPrompt },
-      }));
-      onConsumeAgentHandoff();
-    }, 0);
-    return () => window.clearTimeout(timer);
-  }, [agentHandoffPrompt, onConsumeAgentHandoff, stage]);
 
   useEffect(() => {
     const nextStep = new Map([[1, 2], [3, 4], [5, 6], [6, 7], [8, 9]]).get(planningStep);
@@ -228,7 +212,7 @@ export function ManagementActionPages(props: ManagementActionPagesProps) {
               : null;
       if (scriptedStep !== null) {
         setSessionConversations((current) => ({ ...current, planning: emptyConversation() }));
-        if (scriptedStep === 8 && !executionTaskDone[0]) onToggleExecutionTask(0);
+        if (scriptedStep === 8 && !executionTaskDone["position-check"]) onToggleExecutionTask("position-check");
         setPlanningStep(scriptedStep);
         return;
       }
@@ -295,7 +279,7 @@ export function ManagementActionPages(props: ManagementActionPagesProps) {
               {planningStep === 3 && <div className="agent-thinking-line"><span className="agent-avatar is-thinking">AI</span><p>正在按每周 6 小时安排低成本验证任务<i /><i /><i /></p></div>}
               {planningStep >= 4 && <AgentMessage type="task_list" label="AI 已安排" title="先用 4 个小任务验证你是否适合考公">
                 <p>这些任务只验证岗位认知、学习体验和真实代价，不会替你锁定方向。</p>
-                <div className="agent-task-list">{executionTasks.map((task, index) => <button className={executionTaskDone[index] ? "is-done" : ""} onClick={() => onToggleExecutionTask(index)} key={task.title}><span>{executionTaskDone[index] ? "✓" : index + 1}</span><div><b>{task.title}</b><small>{task.deadline} · 任务分值 {task.weight}</small><em>做到这里算完成：{task.criteria}</em></div></button>)}</div>
+                <div className="agent-task-list">{executionTasks.map((task, index) => <button className={executionTaskDone[task.id] ? "is-done" : ""} onClick={() => onToggleExecutionTask(task.id)} key={task.id}><span>{executionTaskDone[task.id] ? "✓" : index + 1}</span><div><b>{task.title}</b><small>{task.deadline} · 任务分值 {task.weight}</small><em>{task.subtasks?.length ? `已拆成 ${task.subtasks.length} 个小步骤` : `做到这里算完成：${task.criteria}`}{task.link ? " · 已添加官方入口" : ""}</em></div></button>)}</div>
               </AgentMessage>}
 
               {planningStep >= 5 && <div className="execution-message user" data-script-turn="tax"><span>你</span><div><small>刚刚</small><p>我确认了想去税务局</p></div></div>}
@@ -343,8 +327,8 @@ export function ManagementActionPages(props: ManagementActionPagesProps) {
               <AgentMessage type="progress_update" label="当前完成状态" title={`已完成 ${completedExecutionTasks.length} / ${executionTasks.length} 项，任务进度 ${executionProgress}%`} tone={completedExecutionTasks.length > 0 ? "success" : "default"}>
                 <div className="agent-session-metrics"><span><b>{completedExecutionTasks.length}/{executionTasks.length}</b>完成任务</span><span><b>{executionProgress}%</b>任务进度</span><span><b>{completedExecutionTasks.reduce((total, task) => total + task.durationMinutes, 0)}</b>投入分钟</span></div>
                 <div className={`weighted-progress-track ${executionProgressClass}`}><i style={{ width: `${executionProgress}%` }} /></div>
-                <div className="agent-task-list compact">{executionTasks.map((task, index) => <button className={`${executionTaskDone[index] ? "is-done" : ""} ${taskManagerActions[index] === "abandoned" ? "is-paused" : ""}`} onClick={() => onToggleExecutionTask(index)} disabled={taskManagerActions[index] === "abandoned"} key={task.title}><span>{executionTaskDone[index] ? "✓" : taskManagerActions[index] === "abandoned" ? "—" : index + 1}</span><div><b>{task.title}</b><small>{executionTaskDone[index] ? "已完成" : taskManagerActions[index] === "abandoned" ? "已暂停 · 可在任务管理中恢复" : taskManagerActions[index] === "rescheduled" ? "已改至下周三 20:00" : task.deadline} · 任务分值 {task.weight}</small><em>做到这里算完成：{task.criteria}</em></div></button>)}</div>
-                <div className="agent-next-action"><span>下一步先做</span><b>{nextExecutionTask?.title ?? "本周任务已经全部完成"}</b><small>{nextExecutionTask ? `预计 ${nextExecutionTask.durationMinutes} 分钟，完成后进度会增加 ${nextExecutionTask.weight}%` : "可以进入本周回顾，确认下一阶段。"}</small></div>
+                <div className="agent-task-list compact">{executionTasks.map((task, index) => <button className={`${executionTaskDone[task.id] ? "is-done" : ""} ${taskManagerActions[task.id] === "abandoned" ? "is-paused" : ""}`} onClick={() => onToggleExecutionTask(task.id)} disabled={taskManagerActions[task.id] === "abandoned"} key={task.id}><span>{executionTaskDone[task.id] ? "✓" : taskManagerActions[task.id] === "abandoned" ? "—" : index + 1}</span><div><b>{task.title}</b><small>{executionTaskDone[task.id] ? "已完成" : taskManagerActions[task.id] === "abandoned" ? "已暂停 · 可在任务管理中恢复" : taskManagerActions[task.id] === "rescheduled" ? "已改期" : task.deadline} · 任务分值 {task.weight}</small><em>{task.subtasks?.length ? `已拆成 ${task.subtasks.length} 个小步骤` : `做到这里算完成：${task.criteria}`}{task.link ? " · 已添加官方入口" : ""}</em></div></button>)}</div>
+                <div className="agent-next-action"><span>下一步先做</span><b>{nextExecutionTask?.title ?? "本周任务已经全部完成"}</b><small>{nextExecutionTask ? `预计 ${nextExecutionTask.durationMinutes} 分钟，完成后加权进度约增加 ${totalTaskWeight ? Math.round((nextExecutionTask.weight / totalTaskWeight) * 100) : 0}%` : "可以进入本周回顾，确认下一阶段。"}</small></div>
               </AgentMessage>
             </>}
 
@@ -380,7 +364,7 @@ export function ManagementActionPages(props: ManagementActionPagesProps) {
       <div className="execution-review-heading"><div><span className="section-kicker">周回顾</span><h2>{minimumEvidenceReady ? "这周有进展，下一步补真实体验" : "先完成两件小事，再决定下一阶段"}</h2></div><p>这里只回答三件事：做了什么、还缺什么、接下来做什么。</p></div>
       <div className="review-simple-stats"><article><span>完成任务</span><strong>{completedExecutionTasks.length}<small> / {executionTasks.length}</small></strong><p>点开下方可看每项记录</p></article><article><span>本周进度</span><strong>{executionProgress}<small>%</small></strong><p>任务越重要，完成后增加得越多</p></article><article><span>方向线索</span><strong>{alignedRequirementCount}<small> / {alignmentRequirements.length}</small></strong><p>已确认方向 + 已完成的真实任务</p></article></div>
       <div className="execution-review-grid">
-        <article className="review-report-card"><header><span>任务记录</span><h3>{completedExecutionTasks.length >= 2 ? "第一轮岗位探索已完成" : "先完成最小探索任务"}</h3></header><div className="review-task-columns"><div><span>已完成</span>{executionTasks.filter((_, index) => executionTaskDone[index]).map((task) => <p key={task.title}><b>✓</b><span>{task.title}</span><small>分值 {task.weight}</small></p>)}{completedExecutionTasks.length === 0 && <p className="review-empty-copy">还没有完成任务</p>}</div><div><span>接下来</span>{executionTasks.filter((_, index) => !executionTaskDone[index]).map((task) => <p key={task.title}><b>·</b><span>{task.title}</span><small>{task.deadline}</small></p>)}</div></div><details className="review-alignment-details"><summary>为什么方向线索是 {alignedRequirementCount} / {alignmentRequirements.length}？</summary><div>{alignmentRequirements.map((item) => <span className={item.met ? "is-met" : ""} key={item.label}><i>{item.met ? "✓" : "·"}</i>{item.label}</span>)}</div><p>没有完成不代表方向错误，可能是任务太难、时间冲突，或你有了新的想法。Agent 会先问原因。</p></details><div className="review-reason"><span>当前卡点</span><b>{executionPhase < 2 ? "还不知道，需要你补充" : activeExecutionObstacle.label}</b><p>{executionPhase < 2 ? "回到本周计划说明原因后，Agent 才会拆小任务或调整时间。" : activeExecutionObstacle.review}</p></div></article>
+        <article className="review-report-card"><header><span>任务记录</span><h3>{completedExecutionTasks.length >= 2 ? "第一轮岗位探索已完成" : "先完成最小探索任务"}</h3></header><div className="review-task-columns"><div><span>已完成</span>{executionTasks.filter((task) => executionTaskDone[task.id]).map((task) => <p key={task.id}><b>✓</b><span>{task.title}</span><small>分值 {task.weight}</small></p>)}{completedExecutionTasks.length === 0 && <p className="review-empty-copy">还没有完成任务</p>}</div><div><span>接下来</span>{executionTasks.filter((task) => !executionTaskDone[task.id]).map((task) => <p key={task.id}><b>·</b><span>{task.title}</span><small>{task.deadline}</small></p>)}</div></div><details className="review-alignment-details"><summary>为什么方向线索是 {alignedRequirementCount} / {alignmentRequirements.length}？</summary><div>{alignmentRequirements.map((item) => <span className={item.met ? "is-met" : ""} key={item.label}><i>{item.met ? "✓" : "·"}</i>{item.label}</span>)}</div><p>没有完成不代表方向错误，可能是任务太难、时间冲突，或你有了新的想法。Agent 会先问原因。</p></details><div className="review-reason"><span>当前卡点</span><b>{executionPhase < 2 ? "还不知道，需要你补充" : activeExecutionObstacle.label}</b><p>{executionPhase < 2 ? "回到本周计划说明原因后，Agent 才会拆小任务或调整时间。" : activeExecutionObstacle.review}</p></div></article>
         <aside className={`review-agent-card next-plan-phase-${nextPlanPhase}`} aria-live="polite">
           {nextPlanPhase === 0 && <><header><span className="agent-avatar">AI</span><div><small>AI 本周建议</small><h3>{minimumEvidenceReady ? "可以进入下一阶段" : "现在还不适合生成下一阶段"}</h3></div></header><div className="review-next-summary"><section><span>我知道的</span><p>{completedExecutionTasks.length > 0 ? `你已完成 ${completedExecutionTasks.map((task) => task.category).join("、")}。` : "方向由你确认，但还没有真实任务结果。"}</p></section><section><span>还不知道的</span><p>{minimumEvidenceReady ? "真实学习感受和能否持续投入。" : "可报岗位、考试结构和未完成原因。"}</p></section><section><span>建议</span><p>{minimumEvidenceReady ? "下一阶段只补一次学习体验，不增加刷题量。" : "先完成岗位资格与考试结构两项任务，再回来生成计划。"}</p></section></div><div className="review-safety-note">Agent 不会因为低进度自动换方向，也不会清空你的主对话；最终选择仍由你确认。</div><div className="review-decision"><button className="ghost-button" onClick={() => onGoToStage("execution")}>回到本周计划</button><button className="primary-button" disabled={!minimumEvidenceReady} onClick={onStartNextPlan}>{minimumEvidenceReady ? "生成下一阶段计划" : "完成前两项后再生成"} <span>→</span></button></div></>}
           {nextPlanPhase === 1 && <div className="next-plan-processing"><header><span className="agent-avatar is-thinking">AI</span><div><small>成长规划 Agent</small><h3>正在重新规划</h3></div></header><p>把这周的完成情况、阻碍和方向意愿放在一起计算。</p><div className="next-plan-progress"><i style={{ width: `${(nextPlanStep / 3) * 100}%` }} /></div><div className="next-plan-steps">{["汇总已完成任务与未完成原因", "调整任务难度和先后顺序", "生成可在 3 天内完成的新计划"].map((item, index) => <div className={nextPlanStep > index ? "is-done" : nextPlanStep === index ? "is-active" : ""} key={item}><span>{nextPlanStep > index ? "✓" : `0${index + 1}`}</span><b>{item}</b><i /></div>)}</div><small className="next-plan-processing-note">每项变化都会保留依据</small></div>}

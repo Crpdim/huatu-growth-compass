@@ -3,11 +3,15 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
 import type {
   AuthorizationSourceId,
+  ExecutionTask,
   NextStageChoice,
   PathId,
   PurposeId,
   ReviewWindow,
   Stage,
+  TaskDraft,
+  TaskLink,
+  TaskSubtask,
 } from "./demo-types";
 import { AppChrome } from "./components/app-chrome";
 import { ExplorationPages } from "./components/exploration-pages";
@@ -36,7 +40,7 @@ const {
   pathData,
   roleModelCases,
   executionObstacles,
-  executionTasks,
+  executionTasks: initialExecutionTasks,
   huatuDemoResources,
   companionObstacles,
   companionFeedbacks,
@@ -44,6 +48,9 @@ const {
   nextStageOptions,
   stageRank,
 } = demoData;
+
+const cloneInitialTasks = () => initialExecutionTasks.map((task) => ({ ...task }));
+const createInitialCompletion = () => Object.fromEntries(initialExecutionTasks.map((task) => [task.id, false]));
 
 export default function Home() {
   const landingVisualRef = useRef<HTMLDivElement>(null);
@@ -63,7 +70,8 @@ export default function Home() {
   const [authorizedSources, setAuthorizedSources] = useState<Record<AuthorizationSourceId, boolean>>({ bilibili: true, github: true, huatu: true, watch: false });
   const [profileImportStep, setProfileImportStep] = useState(0);
   const [executionPhase, setExecutionPhase] = useState(0);
-  const [executionTaskDone, setExecutionTaskDone] = useState([false, false, false, false]);
+  const [executionTasks, setExecutionTasks] = useState<ExecutionTask[]>(cloneInitialTasks);
+  const [executionTaskDone, setExecutionTaskDone] = useState<Record<string, boolean>>(createInitialCompletion);
   const [selectedObstacle, setSelectedObstacle] = useState<number | null>(null);
   const [nextPlanPhase, setNextPlanPhase] = useState<0 | 1 | 2>(0);
   const [nextPlanStep, setNextPlanStep] = useState(0);
@@ -90,8 +98,7 @@ export default function Home() {
   const [nextStageChoice, setNextStageChoice] = useState<NextStageChoice | null>(null);
   const [stagePlanPhase, setStagePlanPhase] = useState<0 | 1 | 2>(0);
   const [stagePlanStep, setStagePlanStep] = useState(0);
-  const [taskManagerActions, setTaskManagerActions] = useState<Record<number, "rescheduled" | "abandoned">>({});
-  const [taskManagerAgentPrompt, setTaskManagerAgentPrompt] = useState("");
+  const [taskManagerActions, setTaskManagerActions] = useState<Record<string, "rescheduled" | "abandoned">>({});
 
   const currentRank = stageRank[stage];
   const availableRank = Math.min(journeySteps.length, Math.max(currentRank, furthestRank));
@@ -122,8 +129,10 @@ export default function Home() {
   ], [profileSignals, purpose]);
 
   const activeExecutionObstacle = executionObstacles[selectedObstacle ?? 0];
-  const executionProgress = executionTasks.reduce((total, task, index) => total + (executionTaskDone[index] ? task.weight : 0), 0);
-  const completedExecutionTasks = executionTasks.filter((_, index) => executionTaskDone[index]);
+  const executionTotalWeight = executionTasks.reduce((total, task) => total + task.weight, 0);
+  const executionCompletedWeight = executionTasks.reduce((total, task) => total + (executionTaskDone[task.id] ? task.weight : 0), 0);
+  const executionProgress = executionTotalWeight ? Math.round((executionCompletedWeight / executionTotalWeight) * 100) : 0;
+  const completedExecutionTasks = executionTasks.filter((task) => executionTaskDone[task.id]);
   const executionProgressClass = executionProgress < 15 ? "is-start" : executionProgress < 40 ? "is-exploring" : executionProgress < 70 ? "is-accelerating" : executionProgress < 95 ? "is-sprinting" : "is-finished";
   const analysisComplete = analysisStep >= analysisSteps.length;
   const analysisProgress = analysisComplete ? 100 : Math.round(8 + (analysisStep / analysisSteps.length) * 84);
@@ -149,9 +158,10 @@ export default function Home() {
             nextTask: activeCompanionObstacle.nextTask,
           };
   const companionBaseProgress = Math.max(executionProgress, 50);
-  const companionProgress = Math.min(100, companionBaseProgress + (companionPhase >= 7 && !executionTaskDone[2] ? 10 : 0));
-  const managementTaskCredits = executionTasks.map((task, index) => executionTaskDone[index] ? task.weight : index === 2 && companionPhase >= 7 ? 10 : 0);
-  const managementProgress = managementTaskCredits.reduce((total, credit) => total + credit, 0);
+  const companionProgress = Math.min(100, companionBaseProgress + (companionPhase >= 7 && !executionTaskDone["learning-trial"] ? 10 : 0));
+  const managementTaskCredits = Object.fromEntries(executionTasks.map((task) => [task.id, executionTaskDone[task.id] ? task.weight : task.id === "learning-trial" && companionPhase >= 7 ? Math.min(10, task.weight) : 0]));
+  const managementEarnedWeight = Object.values(managementTaskCredits).reduce((total, credit) => total + credit, 0);
+  const managementProgress = executionTotalWeight ? Math.round((managementEarnedWeight / executionTotalWeight) * 100) : 0;
   const managementProgressClass = managementProgress < 15 ? "is-start" : managementProgress < 40 ? "is-exploring" : managementProgress < 70 ? "is-accelerating" : managementProgress < 95 ? "is-sprinting" : "is-finished";
   const managementConversationStage: "execution" | "companion" = companionPhase > 0 ? "companion" : "execution";
   const updatedAbilityDimensions = abilityDimensions.map((item, index) => ({
@@ -437,7 +447,8 @@ export default function Home() {
     setAuthorizedSources({ bilibili: true, github: true, huatu: true, watch: false });
     setProfileImportStep(0);
     setExecutionPhase(0);
-    setExecutionTaskDone([false, false, false, false]);
+    setExecutionTasks(cloneInitialTasks());
+    setExecutionTaskDone(createInitialCompletion());
     setSelectedObstacle(null);
     setNextPlanPhase(0);
     setNextPlanStep(0);
@@ -465,7 +476,6 @@ export default function Home() {
     setStagePlanPhase(0);
     setStagePlanStep(0);
     setTaskManagerActions({});
-    setTaskManagerAgentPrompt("");
   }
 
   function chooseRouteFollowup(index: number) {
@@ -499,20 +509,57 @@ export default function Home() {
     }
   }
 
-  function toggleExecutionTask(index: number) {
-    const next = executionTaskDone.map((done, taskIndex) => taskIndex === index ? !done : done);
+  function toggleExecutionTask(taskId: string) {
+    const next = { ...executionTaskDone, [taskId]: !executionTaskDone[taskId] };
     setExecutionTaskDone(next);
     setTaskManagerActions((current) => {
-      if (!(index in current)) return current;
+      if (!(taskId in current)) return current;
       const updated = { ...current };
-      delete updated[index];
+      delete updated[taskId];
       return updated;
     });
-    if (next[0] && next[1]) {
+    if (next["position-check"] && next["exam-structure"]) {
       setExecutionPhase(4);
     } else if (executionPhase >= 4) {
       setExecutionPhase(selectedObstacle === null ? 0 : 2);
     }
+  }
+
+  function addExecutionTask(draft: TaskDraft) {
+    const task: ExecutionTask = {
+      ...draft,
+      id: `custom-${Date.now()}`,
+      weight: 10,
+      deadlineOrder: executionTasks.length + 1,
+      unlocks: 0,
+    };
+    setExecutionTasks((current) => [...current, task]);
+    setExecutionTaskDone((current) => ({ ...current, [task.id]: false }));
+  }
+
+  function updateExecutionTask(taskId: string, updates: Partial<ExecutionTask>) {
+    setExecutionTasks((current) => current.map((task) => task.id === taskId ? { ...task, ...updates, id: task.id } : task));
+  }
+
+  function deleteExecutionTask(taskId: string) {
+    setExecutionTasks((current) => current.filter((task) => task.id !== taskId));
+    setExecutionTaskDone((current) => { const next = { ...current }; delete next[taskId]; return next; });
+    setTaskManagerActions((current) => { const next = { ...current }; delete next[taskId]; return next; });
+  }
+
+  function splitExecutionTask(taskId: string, subtasks: TaskSubtask[]) {
+    updateExecutionTask(taskId, { subtasks });
+  }
+
+  function toggleExecutionSubtask(taskId: string, subtaskId: string) {
+    setExecutionTasks((current) => current.map((task) => task.id !== taskId ? task : {
+      ...task,
+      subtasks: task.subtasks?.map((subtask) => subtask.id === subtaskId ? { ...subtask, done: !subtask.done } : subtask),
+    }));
+  }
+
+  function attachExecutionTaskLink(taskId: string, link: TaskLink) {
+    updateExecutionTask(taskId, { link });
   }
 
   function goToActionStage(nextStage: Stage) {
@@ -695,15 +742,30 @@ export default function Home() {
         onGoToStage={goToActionStage}
         executionChatRef={executionChatRef}
         onSetExecutionPhase={setExecutionPhase}
-        onRestartPlanningDemo={() => { setExecutionTaskDone([false, false, false, false]); setTaskManagerActions({}); setExecutionPhase(0); setSelectedObstacle(null); }}
+        onRestartPlanningDemo={() => { setExecutionTasks(cloneInitialTasks()); setExecutionTaskDone(createInitialCompletion()); setTaskManagerActions({}); setExecutionPhase(0); setSelectedObstacle(null); }}
         nextPlanPhase={nextPlanPhase}
         nextPlanStep={nextPlanStep}
         onStartNextPlan={() => { setNextPlanStep(0); setNextPlanPhase(1); }}
-        agentHandoffPrompt={taskManagerAgentPrompt}
-        onConsumeAgentHandoff={() => setTaskManagerAgentPrompt("")}
       />
 
-      {stage === "progress" && <ProgressPage progress={managementProgress} progressClass={managementProgressClass} tasks={executionTasks} taskCredits={managementTaskCredits} taskActions={taskManagerActions} reviewSnapshot={companionPhase >= 8} conversationStage={managementConversationStage} onToggleTask={toggleExecutionTask} onSetTaskAction={(index, action) => setTaskManagerActions((current) => { const next = { ...current }; if (action) next[index] = action; else delete next[index]; return next; })} onNavigate={goToActionStage} onAskAgent={(prompt) => { setTaskManagerAgentPrompt(prompt); setStage("execution"); }} />}
+      {stage === "progress" && <ProgressPage
+        progress={managementProgress}
+        progressClass={managementProgressClass}
+        tasks={executionTasks}
+        taskCredits={managementTaskCredits}
+        taskActions={taskManagerActions}
+        reviewSnapshot={companionPhase >= 8}
+        conversationStage={managementConversationStage}
+        onToggleTask={toggleExecutionTask}
+        onSetTaskAction={(taskId, action) => setTaskManagerActions((current) => { const next = { ...current }; if (action) next[taskId] = action; else delete next[taskId]; return next; })}
+        onAddTask={addExecutionTask}
+        onUpdateTask={updateExecutionTask}
+        onDeleteTask={deleteExecutionTask}
+        onSplitTask={splitExecutionTask}
+        onToggleSubtask={toggleExecutionSubtask}
+        onAttachLink={attachExecutionTaskLink}
+        onNavigate={goToActionStage}
+      />}
 
       {stage === "companion" && (
         <CompanionPage

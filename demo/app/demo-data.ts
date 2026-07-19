@@ -1,4 +1,4 @@
-import type { AuthorizationSourceId, NextStageChoice, PathId, PurposeId, QuizOption, ReviewWindow, Stage } from "./demo-types";
+import type { AuthorizationSourceId, ExecutionTask, NextStageChoice, PathId, PurposeId, QuizOption, ReviewWindow, Stage } from "./demo-types";
 
 export const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
@@ -283,11 +283,11 @@ export const executionObstacles = [
   },
 ];
 
-export const executionTasks = [
-  { title: "确认 1 个可报岗位", category: "岗位认知", weight: 30, deadline: "周五 20:00", priority: "高优先", durationMinutes: 30, deadlineOrder: 1, unlocks: 2, criteria: "核对专业、学历、应届身份和地域四项条件" },
-  { title: "读懂行测与申论结构", category: "考试认知", weight: 20, deadline: "周六 18:00", priority: "中优先", durationMinutes: 20, deadlineOrder: 2, unlocks: 1, criteria: "用自己的话写出两类考试各自考什么" },
-  { title: "体验 20 分钟华图入门课", category: "学习体验", weight: 30, deadline: "周日 16:00", priority: "中优先", durationMinutes: 40, deadlineOrder: 3, unlocks: 1, criteria: "完成 20 分钟课程、配套练习和一次主动反馈" },
-  { title: "记录愿意与不愿意付出的代价", category: "方向复盘", weight: 20, deadline: "周日 20:00", priority: "低优先", durationMinutes: 20, deadlineOrder: 4, unlocks: 0, criteria: "愿意与不愿意承担的代价各写 2 项" },
+export const executionTasks: ExecutionTask[] = [
+  { id: "position-check", title: "确认 1 个可报岗位", category: "岗位认知", weight: 30, deadline: "周五 20:00", priority: "高优先", durationMinutes: 30, deadlineOrder: 1, unlocks: 2, criteria: "核对专业、学历、应届身份和地域四项条件" },
+  { id: "exam-structure", title: "读懂行测与申论结构", category: "考试认知", weight: 20, deadline: "周六 18:00", priority: "中优先", durationMinutes: 20, deadlineOrder: 2, unlocks: 1, criteria: "用自己的话写出两类考试各自考什么" },
+  { id: "learning-trial", title: "体验 20 分钟华图入门课", category: "学习体验", weight: 30, deadline: "周日 16:00", priority: "中优先", durationMinutes: 40, deadlineOrder: 3, unlocks: 1, criteria: "完成 20 分钟课程、配套练习和一次主动反馈" },
+  { id: "cost-reflection", title: "记录愿意与不愿意付出的代价", category: "方向复盘", weight: 20, deadline: "周日 20:00", priority: "低优先", durationMinutes: 20, deadlineOrder: 4, unlocks: 0, criteria: "愿意与不愿意承担的代价各写 2 项" },
 ];
 
 export const huatuDemoResources = {

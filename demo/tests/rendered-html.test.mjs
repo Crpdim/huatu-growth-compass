@@ -119,9 +119,11 @@ test("contains the complete Growth Compass demo journey", async () => {
     "task_list",
     "stress_probe",
     "任务管理",
-    "本周任务，一处管理",
-    "手动勾选、改期或暂停",
-    "课程已经完成，配套练习仍缺少结果",
+    "本周 Todo",
+    "自己增删改，也可以只让 AI 处理某一项",
+    "可以直接增删改",
+    "AI 任务助手",
+    "完成状态会同步到 Agent 对话",
     "任务分值",
     "已完成",
     "未完成",
@@ -166,7 +168,7 @@ test("contains the complete Growth Compass demo journey", async () => {
   }
 
   assert.match(page, /本次作为对照路径/);
-  assert.match(page, /executionTasks\.reduce/);
+  assert.match(page, /executionTotalWeight/);
   assert.match(page, /executionTaskDone/);
   assert.match(page, /managementTaskCredits/);
   assert.match(page, /sessionConversations/);
@@ -244,7 +246,7 @@ test("keeps growth management chat-first with an explicit task manager entry", a
   assert.doesNotMatch(management, /后续解锁|查看完整画像依据|打开进展总览/);
 });
 
-test("shares manually controlled task state with the Agent workspace", async () => {
+test("lets the user add, edit, delete and AI-adjust tasks without losing shared state", async () => {
   const [appPage, management, progress, globalStyles] = await Promise.all([
     readFile(pageUrl, "utf8"),
     readFile(managementPageUrl, "utf8"),
@@ -253,19 +255,30 @@ test("shares manually controlled task state with the Agent workspace", async () 
   ]);
 
   assert.match(appPage, /taskManagerActions/);
-  assert.match(appPage, /taskManagerAgentPrompt/);
+  assert.match(appPage, /setExecutionTasks/);
+  assert.match(appPage, /addExecutionTask/);
+  assert.match(appPage, /updateExecutionTask/);
+  assert.match(appPage, /deleteExecutionTask/);
+  assert.match(appPage, /splitExecutionTask/);
+  assert.match(appPage, /attachExecutionTaskLink/);
   assert.match(appPage, /taskActions=\{taskManagerActions\}/);
   assert.match(appPage, /taskManagerActions=\{taskManagerActions\}/);
   assert.match(progress, /onToggleTask/);
   assert.match(progress, /onSetTaskAction/);
-  assert.match(progress, /改到下周/);
-  assert.match(progress, /暂不做/);
-  assert.match(progress, /恢复任务/);
-  assert.match(progress, /AI 帮我调整/);
-  assert.match(progress, /让 Agent 帮我拆解/);
+  assert.match(progress, /＋ 新建任务/);
+  assert.match(progress, /保存修改/);
+  assert.match(progress, /删除“\$\{task\.title\}”/);
+  assert.match(progress, /className="task-row-ai"/);
+  assert.match(progress, /拆成小任务/);
+  assert.match(progress, /应用这份拆解/);
+  assert.match(progress, /保存链接到任务/);
+  assert.match(progress, /bm\.scs\.gov\.cn\/kl2026/);
+  assert.match(progress, /国家公务员局官方报名专题/);
   assert.match(management, /已暂停 · 可在任务管理中恢复/);
-  assert.match(management, /agentHandoffPrompt/);
-  assert.match(globalStyles, /\.task-manager-metrics/);
+  assert.match(management, /已拆成 \$\{task\.subtasks\.length\} 个小步骤/);
+  assert.match(management, /已添加官方入口/);
+  assert.match(globalStyles, /\.task-manager-row/);
+  assert.match(globalStyles, /\.task-ai-dialog/);
   assert.match(globalStyles, /\.progress-spectrum i/);
 });
 
