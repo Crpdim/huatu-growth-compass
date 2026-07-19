@@ -97,11 +97,11 @@
             <p class="system-eyebrow">体制内人生</p>
             <h1 id="system-title">先填好你的身份档案</h1>
             <p class="system-lead">
-              先把职业、学历、院校层次和专业填清楚，后面的单位、考编和成长路线会跟着变。
+              本次体验固定职业为公务员。再补充学历、院校层次和专业，后面的单位、考录和成长路线会跟着变。
             </p>
 
             <div class="system-notes" aria-label="开局提示">
-              <span>职业决定起点</span>
+              <span>职业固定公务员</span>
               <span>学历影响路径</span>
               <span>专业决定侧门</span>
             </div>
@@ -122,13 +122,8 @@
 
               <label class="field">
                 <span class="field-label">职业</span>
-                <select name="occupation" id="occupation">
-                  <option value="" selected disabled>请选择职业</option>
-                  <option value="老师">老师</option>
-                  <option value="医生">医生</option>
-                  <option value="公务员">公务员</option>
-                  <option value="事业单位">事业单位</option>
-                </select>
+                <input class="fixed-field-input" name="occupation" id="occupation" type="text" value="公务员" readonly aria-readonly="true" />
+                <small class="fixed-field-note">当前游戏体验固定职业，不可修改</small>
               </label>
 
               <label class="field">
@@ -188,7 +183,7 @@
                 </div>
                 <div>
                   <dt>职业</dt>
-                  <dd data-summary="occupation">未选择</dd>
+                  <dd data-summary="occupation">公务员</dd>
                 </div>
                 <div>
                   <dt>学历</dt>
@@ -286,7 +281,7 @@
                   </div>
                   <div>
                     <dt>职业</dt>
-                    <dd data-final-summary="occupation">未选择</dd>
+                    <dd data-final-summary="occupation">公务员</dd>
                   </div>
                   <div>
                     <dt>学历</dt>
@@ -323,6 +318,6 @@
       </div>
     </main>
 
-    <script src="./script.js?v=20260719-route-notice"></script>
+    <script src="./script.js?v=20260719-fixed-occupation"></script>
   </body>
 </html>

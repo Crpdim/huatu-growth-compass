@@ -350,7 +350,7 @@ test("wires every life-game exit to the intended Growth Compass stage", async ()
 
   assert.match(gameHtml, /id="open-growth-planning"/);
   assert.match(gameHtml, /id="complete-to-profile"/);
-  assert.match(gameHtml, /script\.js\?v=20260719-route-notice/);
+  assert.match(gameHtml, /script\.js\?v=20260719-fixed-occupation/);
   assert.match(gameHtml, /当前仅开放<br \/><strong>体制内人生—公务员<\/strong>的游戏体验/);
   assert.match(gameHtml, /请选择体制内人生开始游戏/);
   assert.match(gameHtml, /id="choose-system-life"/);
@@ -358,6 +358,10 @@ test("wires every life-game exit to the intended Growth Compass stage", async ()
   assert.match(gameScript, /openRouteNotice\(\)/);
   assert.match(gameScript, /routeNotice\.showModal\(\)/);
   assert.match(gameScript, /chooseSystemLifeButton\.addEventListener\("click"/);
+  assert.match(gameHtml, /name="occupation" id="occupation" type="text" value="公务员" readonly/);
+  assert.match(gameHtml, /当前游戏体验固定职业，不可修改/);
+  assert.doesNotMatch(gameHtml, /<select name="occupation"/);
+  assert.match(gameScript, /identityControls\.characterName\.focus/);
   assert.match(gameScript, /growthPlanningLink\.addEventListener\("click"/);
   assert.match(gameScript, /notifyGrowthCompass\("huatu:explore-planning"\)/);
   assert.match(gameScript, /completeToProfileButton\.addEventListener\("click"/);

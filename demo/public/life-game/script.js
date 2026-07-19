@@ -369,7 +369,7 @@ function enterSystemLife() {
   scrollToTop();
 
   window.requestAnimationFrame(() => {
-    identityControls.occupation.focus({ preventScroll: true });
+    identityControls.characterName.focus({ preventScroll: true });
   });
 }
 
