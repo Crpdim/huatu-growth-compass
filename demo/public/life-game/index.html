@@ -64,6 +64,22 @@
       </figure>
     </main>
 
+    <dialog class="route-notice" id="route-notice" aria-labelledby="route-notice-title" aria-describedby="route-notice-description">
+      <section class="route-notice-card">
+        <button class="route-notice-close" type="button" data-action="close-route-notice" aria-label="关闭提示">×</button>
+        <div class="route-notice-symbol" aria-hidden="true">
+          <span class="plumbob"></span>
+        </div>
+        <p class="route-notice-badge">试玩路线提示</p>
+        <h2 id="route-notice-title">当前仅开放<br /><strong>体制内人生—公务员</strong>的游戏体验</h2>
+        <p id="route-notice-description">请选择体制内人生开始游戏</p>
+        <div class="route-notice-actions">
+          <button class="route-notice-dismiss" type="button" data-action="close-route-notice">返回选择</button>
+          <button class="route-notice-confirm" type="button" id="choose-system-life">选择体制内人生 <span>→</span></button>
+        </div>
+      </section>
+    </dialog>
+
     <main class="system-screen" aria-labelledby="system-title">
       <div class="system-backdrop" aria-hidden="true">
         <img src="./assets/system-life-bg.png" alt="" />
@@ -307,6 +323,6 @@
       </div>
     </main>
 
-    <script src="./script.js?v=20260719-remove-dream"></script>
+    <script src="./script.js?v=20260719-route-notice"></script>
   </body>
 </html>

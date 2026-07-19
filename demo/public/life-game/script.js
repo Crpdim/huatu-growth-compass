@@ -1,6 +1,10 @@
 const buttons = document.querySelectorAll(".life-button");
 const statusLine = document.querySelector(".status-line");
 const growthPlanningLink = document.querySelector("#open-growth-planning");
+const routeNotice = document.querySelector("#route-notice");
+const routeNoticeDismissButtons = document.querySelectorAll('[data-action="close-route-notice"]');
+const chooseSystemLifeButton = document.querySelector("#choose-system-life");
+const systemLifeButton = document.querySelector('[data-life="体制内人生"]');
 const backButtons = document.querySelectorAll('[data-action="back-to-entry"]');
 const backToSystemButtons = document.querySelectorAll('[data-action="back-to-system"]');
 const identityForm = document.querySelector("#identity-form");
@@ -76,7 +80,6 @@ const identityLabels = {
   major: "专业"
 };
 
-const particleColors = ["#ffffff", "#caff42", "#ffef61", "#ff62c7", "#5ff2ff"];
 const otherOptionLabel = "其他（自己填写）";
 const answerLockDurationMs = 620;
 
@@ -237,18 +240,34 @@ completeToProfileButton.addEventListener("click", () => {
 
 buttons.forEach((button) => {
   button.addEventListener("click", () => {
-    selectLifeButton(button);
-
     const life = button.dataset.life;
-    statusLine.textContent = messages[life];
 
     if (life === "体制内人生") {
+      selectLifeButton(button);
+      statusLine.textContent = messages[life];
       enterSystemLife();
       return;
     }
 
-    burst(button);
+    openRouteNotice();
   });
+});
+
+routeNoticeDismissButtons.forEach((button) => {
+  button.addEventListener("click", () => routeNotice.close());
+});
+
+routeNotice.addEventListener("click", (event) => {
+  if (event.target === routeNotice) {
+    routeNotice.close();
+  }
+});
+
+chooseSystemLifeButton.addEventListener("click", () => {
+  routeNotice.close();
+  selectLifeButton(systemLifeButton);
+  statusLine.textContent = messages["体制内人生"];
+  enterSystemLife();
 });
 
 backButtons.forEach((button) => {
@@ -320,6 +339,16 @@ function selectLifeButton(selectedButton) {
     const isSelected = item === selectedButton;
     item.classList.toggle("is-selected", isSelected);
     item.setAttribute("aria-pressed", String(isSelected));
+  });
+}
+
+function openRouteNotice() {
+  if (!routeNotice.open) {
+    routeNotice.showModal();
+  }
+
+  window.requestAnimationFrame(() => {
+    chooseSystemLifeButton.focus({ preventScroll: true });
   });
 }
 
@@ -731,26 +760,4 @@ function addChatMessage(speaker, text, type) {
   message.append(speakerNode, textNode);
   chatFeed.appendChild(message);
   chatFeed.scrollTop = chatFeed.scrollHeight;
-}
-
-function burst(button) {
-  const rect = button.getBoundingClientRect();
-  const originX = rect.left + rect.width / 2;
-  const originY = rect.top + rect.height / 2;
-
-  for (let index = 0; index < 14; index += 1) {
-    const particle = document.createElement("span");
-    const angle = (Math.PI * 2 * index) / 14;
-    const distance = 44 + Math.random() * 54;
-
-    particle.className = "particle";
-    particle.style.left = `${originX}px`;
-    particle.style.top = `${originY}px`;
-    particle.style.setProperty("--x", `${Math.cos(angle) * distance}px`);
-    particle.style.setProperty("--y", `${Math.sin(angle) * distance}px`);
-    particle.style.setProperty("--particle-color", particleColors[index % particleColors.length]);
-
-    document.body.appendChild(particle);
-    particle.addEventListener("animationend", () => particle.remove());
-  }
 }

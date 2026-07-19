@@ -350,7 +350,14 @@ test("wires every life-game exit to the intended Growth Compass stage", async ()
 
   assert.match(gameHtml, /id="open-growth-planning"/);
   assert.match(gameHtml, /id="complete-to-profile"/);
-  assert.match(gameHtml, /script\.js\?v=20260719-remove-dream/);
+  assert.match(gameHtml, /script\.js\?v=20260719-route-notice/);
+  assert.match(gameHtml, /当前仅开放<br \/><strong>体制内人生—公务员<\/strong>的游戏体验/);
+  assert.match(gameHtml, /请选择体制内人生开始游戏/);
+  assert.match(gameHtml, /id="choose-system-life"/);
+  assert.match(gameScript, /if \(life === "体制内人生"\)/);
+  assert.match(gameScript, /openRouteNotice\(\)/);
+  assert.match(gameScript, /routeNotice\.showModal\(\)/);
+  assert.match(gameScript, /chooseSystemLifeButton\.addEventListener\("click"/);
   assert.match(gameScript, /growthPlanningLink\.addEventListener\("click"/);
   assert.match(gameScript, /notifyGrowthCompass\("huatu:explore-planning"\)/);
   assert.match(gameScript, /completeToProfileButton\.addEventListener\("click"/);
