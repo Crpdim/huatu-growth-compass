@@ -156,7 +156,6 @@ test("contains the complete Growth Compass demo journey", async () => {
     "没有人生目标？点击探索你的人生规划",
     "模范公务员达成",
     "补全任务画像 →",
-    "梦想照进现实",
     "huatu:explore-planning",
     "huatu:life-game-complete",
   ]) {
@@ -250,14 +249,12 @@ test("wires every life-game exit to the intended Growth Compass stage", async ()
 
   assert.match(gameHtml, /id="open-growth-planning"/);
   assert.match(gameHtml, /id="complete-to-profile"/);
-  assert.match(gameHtml, /id="dream-roadmap"/);
-  assert.match(gameHtml, /script\.js\?v=20260719-d3967e0/);
+  assert.match(gameHtml, /script\.js\?v=20260719-remove-dream/);
   assert.match(gameScript, /growthPlanningLink\.addEventListener\("click"/);
   assert.match(gameScript, /notifyGrowthCompass\("huatu:explore-planning"\)/);
   assert.match(gameScript, /completeToProfileButton\.addEventListener\("click"/);
   assert.match(gameScript, /notifyGrowthCompass\("huatu:life-game-complete"\)/);
-  assert.match(gameScript, /dreamRoadmapButton\.addEventListener\("click", \(\) => \{\s*notifyGrowthCompass\("huatu:life-game-complete"\)/);
-  assert.doesNotMatch(gameScript, /toggleDreamRoadmap|showDreamRoadmap/);
+  assert.doesNotMatch(gameHtml + gameScript, /梦想照进现实|现在的我该怎么一步一步接近这个结局|dream-roadmap|dream-cta/);
   assert.match(gameScript, /window\.parent\.postMessage\(\{ type \}, window\.location\.origin\)/);
   assert.match(bridge, /event\.origin !== window\.location\.origin/);
   assert.match(bridge, /event\.source !== frameRef\.current\?\.contentWindow/);

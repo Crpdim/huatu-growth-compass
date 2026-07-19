@@ -26,7 +26,6 @@ const sceneComplete = document.querySelector("#dorm-complete");
 const sceneCompleteTitle = document.querySelector(".complete-title");
 const sceneCompleteSummary = document.querySelector("#complete-summary");
 const returnPreviousQuestionButton = document.querySelector("#redo-chat");
-const dreamRoadmapButton = document.querySelector("#dream-roadmap");
 const transitionCta = document.querySelector("#transition-cta");
 const nextSceneButton = document.querySelector("#next-scene");
 const finalProfile = document.querySelector("#final-profile");
@@ -297,9 +296,6 @@ returnPreviousQuestionButton.addEventListener("click", () => {
 
   stopSceneTimer();
   goToPreviousQuestion();
-});
-dreamRoadmapButton.addEventListener("click", () => {
-  notifyGrowthCompass("huatu:life-game-complete");
 });
 nextSceneButton.addEventListener("click", goToNextScene);
 

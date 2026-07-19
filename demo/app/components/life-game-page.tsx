@@ -8,7 +8,7 @@ type LifeGamePageProps = {
   onCompleteProfile: () => void;
 };
 
-const lifeGameAssetVersion = "20260719-d3967e0";
+const lifeGameAssetVersion = "20260719-remove-dream";
 
 export function LifeGamePage({ basePath, onExplorePlanning, onCompleteProfile }: LifeGamePageProps) {
   const frameRef = useRef<HTMLIFrameElement>(null);
