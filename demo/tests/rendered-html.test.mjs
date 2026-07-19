@@ -10,6 +10,7 @@ const managementPageUrl = new URL("../app/components/management-action-pages.tsx
 const progressPageUrl = new URL("../app/components/progress-page.tsx", import.meta.url);
 const lifeGamePageUrl = new URL("../app/components/life-game-page.tsx", import.meta.url);
 const promoHomePageUrl = new URL("../app/components/promo-home-page.tsx", import.meta.url);
+const productManualPageUrl = new URL("../app/components/product-manual-page.tsx", import.meta.url);
 const lifeGameHtmlUrl = new URL("../public/life-game/index.html", import.meta.url);
 const lifeGameScriptUrl = new URL("../public/life-game/script.js", import.meta.url);
 const globalStylesUrl = new URL("../app/globals.css", import.meta.url);
@@ -29,6 +30,7 @@ const featureUrls = [
   new URL("../app/components/review-pages.tsx", import.meta.url),
   lifeGamePageUrl,
   promoHomePageUrl,
+  productManualPageUrl,
   lifeGameHtmlUrl,
   lifeGameScriptUrl,
 ];
@@ -223,10 +225,40 @@ test("opens with a campaign homepage and keeps the life game as the experience e
   assert.match(promo, /product-demo\.mp4/);
   assert.match(promo, /experience=life-game/);
   assert.match(promo, /onExperience\(\)/);
+  assert.match(promo, /查看使用手册/);
+  assert.match(promo, /\/manual\//);
   assert.match(promo, /src=\{`\$\{basePath\}\/logo\.png`\}/);
   assert.doesNotMatch(promo, /LIVE|先体验，再选择|把人生选择变成一次可以亲自参与的模拟/);
   assert.match(globalStyles, /\.promo-video-frame/);
   assert.match(globalStyles, /prefers-reduced-motion/);
+});
+
+test("renders the complete product manual as a first-party page", async () => {
+  const manual = await readFile(productManualPageUrl, "utf8");
+
+  for (const content of [
+    "产品使用手册",
+    "做更懂你的 AI 成长管家",
+    "用户画像初建 · 模拟人生",
+    "多渠道信息补充",
+    "八维能力分析",
+    "人生榜样参考",
+    "让合理的规划真正落地",
+    "方向与本周计划",
+    "课程答疑",
+    "当前任务进展",
+    "实时提醒",
+    "本周回顾",
+    "一个入口，多个专业能力协同",
+    "核心成长管家统筹的多 Agent 架构",
+  ]) {
+    assert.match(manual, new RegExp(content));
+  }
+
+  assert.match(manual, /management-tasks-3\.png/);
+  assert.match(manual, /agent-architecture\.png/);
+  assert.match(manual, /experience=life-game/);
+  assert.doesNotMatch(manual, /my\.feishu\.cn|职图有声/);
 });
 
 test("uses finished product metadata instead of starter preview metadata", async () => {

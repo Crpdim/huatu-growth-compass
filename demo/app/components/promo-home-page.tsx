@@ -7,6 +7,7 @@ type PromoHomePageProps = {
 
 export function PromoHomePage({ basePath, onExperience }: PromoHomePageProps) {
   const experienceUrl = `${basePath}/?experience=life-game`;
+  const manualUrl = `${basePath}/manual/`;
 
   return (
     <main className="promo-home">
@@ -40,6 +41,9 @@ export function PromoHomePage({ basePath, onExperience }: PromoHomePageProps) {
         <div className="promo-action">
           <a href={experienceUrl} onClick={(event) => { event.preventDefault(); window.history.pushState(null, "", experienceUrl); onExperience(); }}>
             <span>进入模拟人生</span><b>开始体验</b><i>↗</i>
+          </a>
+          <a className="promo-action-manual" href={manualUrl}>
+            <span>了解完整操作</span><b>查看使用手册</b><i>↗</i>
           </a>
         </div>
       </section>
